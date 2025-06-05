@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  labels:
+    app: {{ .Values.api.label.name }}
+  namespace: {{ .Values.api.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.api.label.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.api.label.name }}
+        environment: {{ .Values.environment }}
+    spec:
+      containers:
+        - name: {{ .Values.api.containers.name }}
+          # Replace with your docker registry info
+          image: {{ .Values.api.containers.image.name }}:{{ .Values.api.containers.image.tag }}
+          # image: ghcr.io/captainpowerturtle/teckshop/catalog.api:0.2.2
+          imagePullPolicy: {{ .Values.api.containers.image.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.api.containers.ports.containerPort }}
+          resources:
+            limits:
+              cpu: {{ .Values.api.containers.resources.imits.cpu }}
+              memory: {{ .Values.api.containers.resources.imits.memory }}
+          env:
+            - name: CachingOptions__Password
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
+            - name: ConnectionStrings__redis
+              value: redis-master.teckshop-prod.svc.cluster.local,password=$(REDIS_PASSWORD)
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: password
+            - name: ConnectionStrings__rabbitmq
+              value: amqp://$(RABBITMQ_USERNAME):$(RABBITMQ_PASSWORD)@teckshop-rabbitmq.teckshop-prod.svc.cluster.local:5672
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: ConnectionStrings__catalogdb
+              value: Host=pgbounce-teckshop-postgres-rw.teckshop-prod.svc;Port=5432;Database=Catalog;Username=$(POSTGRES_USERNAME);Password=$(POSTGRES_PASSWORD);Include Error Detail=true
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: KEYCLOAK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: secret
+            - name: Keycloak__credentials__secret
+              value: $(KEYCLOAK_SECRET)
+      imagePullSecrets:
+        - name: ghcr-login-secret

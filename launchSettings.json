@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "yarp-gateway",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/docs",
+      "serviceActions": {
+        "catalog-api": "StartDebugging",
+        "yarp-gateway": "StartDebugging"
+      },
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Preview"
+      }
+    }
+  }
+}

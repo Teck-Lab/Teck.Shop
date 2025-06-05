@@ -1,0 +1,17 @@
+<Project>
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IsPackable>false</IsPackable>
+    <IsPublishable>true</IsPublishable>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+    <PropertyGroup>
+        <AssemblyVersion>1.0.5</AssemblyVersion>
+        <FileVersion>1.0.5</FileVersion>
+        <Version>1.0.5</Version>
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,30 @@
+global:
+  defaultStorageClass: longhorn-default-replica-storage
+  storageClass: longhorn-default-replica-storage
+architecture: standalone
+persistence:
+  enabled: true
+  storageClass: longhorn-default-replica-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+extraDeploy:
+  - apiVersion: external-secrets.io/v1alpha1
+    kind: PushSecret
+    metadata:
+      name: redis-pushsecret
+      namespace: teckshop-prod
+    spec:
+      secretStoreRefs:
+        - name: teckshop-vault
+          kind: SecretStore
+      selector:
+        secret:
+          name: redis
+      refreshInterval: 30s
+      data:
+        - match:
+            secretKey: redis-password
+            remoteRef:
+              remoteKey: redis
+              property: password

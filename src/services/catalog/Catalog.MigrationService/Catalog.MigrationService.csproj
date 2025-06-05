@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Catalog.MigrationService-5642a839-8445-4344-87f4-e7e91d564437</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..\..</DockerfileContext>
+    <IsPublishable>true</IsPublishable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\aspire\TeckShop.ServiceDefaults\TeckShop.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Core\Teck.Shop.SharedKernel.Core.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Infrastructure\Teck.Shop.SharedKernel.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Persistence\Teck.Shop.SharedKernel.Persistence.csproj" />
+    <ProjectReference Include="..\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

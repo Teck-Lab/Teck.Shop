@@ -1,0 +1,46 @@
+environment: production
+api:
+  label:
+    name: catalog-api
+    namespace: teckshop-prod
+  replicas: 2
+
+  containers:
+    name: catalog-api
+    ports:
+      containerPort: 8080
+
+    image:
+      repository: ghcr.io/captainpowerturtle/teckshop
+      name: catalog.api
+      tag: 0.2.2
+      imagePullPolicy: Always
+    resources:
+      imits:
+        cpu: "500m"
+        memory: 500Mi
+  service:
+    port: 8080
+    targetPort: 8080
+migration:
+  label:
+    name: catalog-migration
+    namespace: teckshop-prod
+  replicas: 1
+  containers:
+    name: catalog-migration
+    ports:
+      containerPort: 8080
+    image:
+      repository: ghcr.io/captainpowerturtle/teckshop
+      name: ghcr.io/captainpowerturtle/teckshop/catalog.migration
+      tag: 1.0.2
+      imagePullPolicy: Always
+    resources:
+      imits:
+        cpu: "500m"
+        memory: 500Mi
+  service:
+    port: 8080
+    targetPort: 8080
+

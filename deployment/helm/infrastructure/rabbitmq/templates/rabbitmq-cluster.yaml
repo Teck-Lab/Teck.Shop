@@ -1,0 +1,22 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+ name: teckshop-rabbitmq
+ namespace: teckshop-prod
+spec:
+  replicas: 1
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 1Gi
+    limits:
+      cpu: '1'
+      memory: 2Gi
+  rabbitmq:
+    additionalConfig: |
+      log.console.level = info
+      channel_max = 1700
+      default_user_tags.administrator = true
+  persistence:
+    storageClassName: longhorn-default-replica-storage
+    storage: 10Gi

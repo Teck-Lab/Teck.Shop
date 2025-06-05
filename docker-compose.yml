@@ -1,0 +1,49 @@
+version: '3.8'
+name: teckshop
+
+services:
+  catalog-api:
+    image: ghcr.io/captainpowerturtle/teckshop/catalog.api:latest
+    build:
+      context: .
+      dockerfile: src/services/catalog/Catalog.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      # - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_HTTP_PORTS=8080
+    networks:
+        - teckshop
+    # ports:
+    #   - "5201-5299:8080"
+    #   - "7201-7299:8081"
+    # deploy:
+    #   mode: replicated
+    #   replicas: 2
+    # ports:
+    #   - 7004
+    #   - 5004
+  yarp-gateway:
+    image: ghcr.io/captainpowerturtle/teckshop/yarp.gateway:latest
+    build:
+      context: .
+      dockerfile: src/services/gateway/Yarp.Gateway/Dockerfile
+    networks:
+        - teckshop
+    environment:
+      # - ASPNETCORE_Kestrel__Certificates__Default__Password=password!
+      # - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/cert.pfx
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      # - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_HTTP_PORTS=8080
+      # - ASPNETCORE_HTTPS_PORTS=8081
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on: 
+        catalog-api:
+            condition: service_started
+    ports:
+      - "8080"
+      # - "8081"
+networks:
+  teckshop:
+    name: teckshop

@@ -1,0 +1,24 @@
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    branches: [main]
+
+permissions:
+  pull-requests: read
+  checks: write
+  contents: read
+
+name: Conventional Commits Pull Request Checks
+
+jobs:
+  commit-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        # Only run on pull request events
+        if: github.event_name == 'pull_request'
+        id: check-pull-request-title-conventional-commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}

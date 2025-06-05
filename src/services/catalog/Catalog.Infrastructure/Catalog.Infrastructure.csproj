@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Persistence\Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Core\Teck.Shop.SharedKernel.Core.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Infrastructure\Teck.Shop.SharedKernel.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Persistence\Teck.Shop.SharedKernel.Persistence.csproj" />
+    <ProjectReference Include="..\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\Catalog.Domain\Catalog.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

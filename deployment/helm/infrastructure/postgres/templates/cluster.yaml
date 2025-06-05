@@ -1,0 +1,55 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: teckshop-postgres
+  namespace: teckshop-prod
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  instances: 1
+  startDelay: 10
+  stopDelay: 10
+  primaryUpdateStrategy: unsupervised
+  enableSuperuserAccess: true
+
+  bootstrap:
+    initdb:
+      database: Keycloak
+      owner: app
+  
+  postgresql:
+    parameters:
+      max_worker_processes: "60"
+    pg_hba:
+      # To access through TCP/IP you will need to get username
+      # and password from the secret cluster-example-custom-app
+      - host all all all scram-sha-256
+
+
+  storage:
+    storageClass: longhorn-postgres-replica-storage
+    size: 10Gi
+  walStorage:
+    storageClass: longhorn-postgres-replica-storage
+    size: 10Gi
+
+  # prometheus
+  monitoring:
+    enablePodMonitor: true
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: pgbounce-teckshop-postgres-rw
+  namespace: teckshop-prod
+spec:
+  cluster:
+    name: teckshop-postgres
+
+  instances: 1
+  type: rw
+  pgbouncer:
+    poolMode: session
+    parameters:
+      max_client_conn: "1000"
+      default_pool_size: "10"
+

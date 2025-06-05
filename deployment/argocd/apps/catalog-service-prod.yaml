@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: catalog-api
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: catalog-api=ghcr.io/captainpowerturtle/teckshop/catalog.api:x.x.x,catalog-migration=ghcr.io/captainpowerturtle/teckshop/catalog.migration:x.x.x
+    argocd-image-updater.argoproj.io/catalog-api.update-strategy: semver
+    argocd-image-updater.argoproj.io/catalog-api.allow-tags: regexp:^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+    argocd-image-updater.argoproj.io/catalog-api.helm.image-name: api.containers.image.name
+    argocd-image-updater.argoproj.io/catalog-api.helm.image-tag: api.containers.image.tag
+    # Migration service
+    argocd-image-updater.argoproj.io/catalog-migration.update-strategy: semver
+    argocd-image-updater.argoproj.io/catalog-migration.allow-tags: regexp:^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+    argocd-image-updater.argoproj.io/catalog-migration.helm.image-name: migration.containers.image.name
+    argocd-image-updater.argoproj.io/catalog-migration.helm.image-tag: migration.containers.image.tag
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: teckshop-prod
+    name: in-cluster
+  project: default
+  source:
+    path: deployment/helm/services/catalog
+    repoURL: git@github.com:CaptainPowerTurtle/TeckShop.git
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+      - values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

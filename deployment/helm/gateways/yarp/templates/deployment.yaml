@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.label.name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.label.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.label.name }}
+        environment: {{ .Values.environment }}
+    spec:
+      containers:
+        - name: {{ .Values.containers.name }}
+          # Replace with your docker registry info
+          image: {{ .Values.containers.image.name }}:{{ .Values.containers.image.tag }}
+          imagePullPolicy: {{ .Values.containers.image.imagePullPolicy }}
+          ports:
+          - containerPort: {{ .Values.containers.ports.containerPort }}
+          resources:
+            limits:
+              cpu: {{ .Values.containers.resources.imits.cpu }}
+              memory: {{ .Values.containers.resources.imits.memory }}
+          env:
+          - name: ASPNETCORE_HTTP_PORTS
+            value: "{{ .Values.containers.env.ASPNETCORE_HTTP_PORTS }}"
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "{{ .Values.containers.env.ASPNETCORE_ENVIRONMENT }}"
+          - name: ReverseProxy__Clusters__catalog__Destinations__catalog__Address
+            value: "{{ .Values.containers.env.Address }}"
+          - name: ReverseProxy__Clusters__catalog__Destinations__catalog__Health
+            value: "{{ .Values.containers.env.Health }}"
+      imagePullSecrets:
+        - name: ghcr-login-secret

@@ -1,0 +1,36 @@
+name: Branch Enforcement
+
+on:
+  pull_request:
+
+permissions:
+  statuses: write
+
+jobs:
+  check-branch:
+    name: Check Branches
+    runs-on: ubuntu-latest
+
+    env:
+      # The branch being merged.
+      HEAD_REF: ${{ github.head_ref }}
+      # The target branch.
+      BASE_REF: ${{ github.base_ref }}
+
+    steps:
+      - name: Enforce Merge Policy
+        id: enforce-policy
+        uses: ncalteen/branch-enforcement@v2
+        with:
+          policy: |
+            dependabot/**/*:main
+            feature/*:main
+            hotfix/*:main
+            release/*:main
+          head_ref: ${{ env.HEAD_REF }}
+          base_ref: ${{ env.BASE_REF }}
+
+      # This step should not run if the branch policy is not met.
+      - name: Policy Passed
+        id: passed
+        run: echo "This PR passes the merge policy!"

@@ -1,0 +1,51 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-migration-service
+  labels:
+    app: {{ .Values.migration.label.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.migration.label.name }}
+        environment: {{ .Values.environment }}
+    spec:
+      containers:
+        - name: {{ .Values.migration.containers.name }}
+          # Replace with your docker registry info
+          image: {{ .Values.migration.containers.image.name }}:{{ .Values.migration.containers.image.tag }}
+          # image: ghcr.io/captainpowerturtle/teckshop/catalog.migration:0.2.2
+          imagePullPolicy: {{ .Values.migration.containers.image.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.migration.containers.ports.containerPort }}
+          resources:
+            limits:
+              cpu: {{ .Values.migration.containers.resources.imits.cpu }}
+              memory: {{ .Values.migration.containers.resources.imits.memory }}
+          env:
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: ConnectionStrings__catalogdb
+              value: Host=pgbounce-teckshop-postgres-rw.teckshop-prod.svc;Port=5432;Database=Catalog;Username=$(POSTGRES_USERNAME);Password=$(POSTGRES_PASSWORD);Include Error Detail=true
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "8080"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+      imagePullSecrets:
+        - name: ghcr-login-secret
+      restartPolicy: Never
+  backoffLimit: 1

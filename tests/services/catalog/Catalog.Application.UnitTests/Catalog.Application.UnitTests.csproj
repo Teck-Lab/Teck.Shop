@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\buildingblocks\Teck.Shop.SharedKernel.Core\Teck.Shop.SharedKernel.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\src\services\catalog\Catalog.Application\Catalog.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+  <PackageReference Include="Shouldly" />
+    <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="System.Text.RegularExpressions" />
+    <PackageReference Include="AutoFixture" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" />
+    <PackageReference Include="Soenneker.Utils.AutoBogus" />
+    <PackageReference Include="Soenneker.Utils.AutoBogus.NSubstitute" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.TestPlatform" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+	  <PackageReference Include="FluentAssertions" />
+	  <PackageReference Include="ErrorOr" />
+	  <PackageReference Include="Bogus" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="System.Text.Encodings.Web" />
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Products\" />
+  </ItemGroup>
+
+</Project>

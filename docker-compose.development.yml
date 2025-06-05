@@ -1,0 +1,21 @@
+version: '3.8'
+name: teckshop
+
+services:
+  catalog-api:
+    image: ghcr.io/captainpowerturtle/teckshop/catalog.api:latest
+    build:
+      context: .
+      dockerfile: src/services/catalog/Catalog.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Preview
+    networks:
+        - teckshop
+    ports:
+      - 7004:7004
+      - 5004:5004
+
+
+networks:
+  teckshop:
+    name: teckshop

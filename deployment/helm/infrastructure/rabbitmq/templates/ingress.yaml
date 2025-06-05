@@ -1,0 +1,25 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: teckshop-rabbitmq-ingress
+  namespace: teckshop-prod
+  annotations:
+    kubernetes.io/ingress.class: traefik-external
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`www.amqp.teck.dk`)
+      kind: Rule
+      services:
+        - name: teckshop-rabbitmq
+          port: 15672
+    - match: Host(`amqp.teck.dk`)
+      kind: Rule
+      services:
+        - name: teckshop-rabbitmq
+          port: 15672
+      middlewares:
+        - name: default-headers
+  # tls:
+    # secretName: keycloak-teck-dk-production-tls

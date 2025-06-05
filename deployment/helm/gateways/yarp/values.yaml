@@ -1,0 +1,28 @@
+environment: Production
+label:
+  name: yarp-gateway
+namespace: teckshop-prod
+replicas: 2
+
+containers:
+  name: yarp-gateway
+  ports:
+    containerPort: 8080
+
+  image:
+    repository: ghcr.io/captainpowerturtle/teckshop
+    name: yarp.gateway
+    tag: 0.2.1
+    imagePullPolicy: Always
+  resources:
+    imits:
+      cpu: "500m"
+      memory: 500Mi
+  env:
+    ASPNETCORE_HTTP_PORTS: 8080
+    ASPNETCORE_ENVIRONMENT: Production
+    Address: http://catalog-api-service.teckshop-prod:8080
+    Health: http://catalog-api-service.teckshop-prod:8080
+service:
+  port: 8080
+  targetPort: 8080

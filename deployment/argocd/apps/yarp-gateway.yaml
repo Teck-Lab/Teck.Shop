@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yarp-gateway
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: yarp-gateway=ghcr.io/captainpowerturtle/teckshop/yarp.gateway:x.x.x
+    argocd-image-updater.argoproj.io/yarp-gateway.update-strategy: semver
+    argocd-image-updater.argoproj.io/yarp-gateway.allow-tags: regexp:^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+    argocd-image-updater.argoproj.io/yarp-gateway.helm.image-name: containers.image.name
+    argocd-image-updater.argoproj.io/yarp-gateway.helm.image-tag: containers.image.tag
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: teckshop-prod
+    name: in-cluster
+  project: default
+  source:
+    path: deployment/helm/gateways/yarp
+    repoURL: git@github.com:CaptainPowerTurtle/TeckShop.git
+    targetRevision: HEAD
+    helm:
+      valueFiles:
+      - values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
