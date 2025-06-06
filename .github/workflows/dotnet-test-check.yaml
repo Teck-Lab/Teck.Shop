@@ -227,6 +227,11 @@ jobs:
       - name: Find all services
         id: find_services
         run: |
+          mkdir -p ${{ runner.temp }}/digests
+          if ! compgen -G "${{ runner.temp }}/digests/digests-*" > /dev/null; then
+            echo "No digest files found in ${{ runner.temp }}/digests. Exiting."
+            exit 1
+          fi
           SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | rev | cut -d'-' -f2- | rev | sed 's/^digests-//g' | sort | uniq)
           echo "SERVICES=$SERVICES" >> $GITHUB_ENV
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
