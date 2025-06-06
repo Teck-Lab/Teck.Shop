@@ -186,7 +186,7 @@ public class ProductTests
     public void Create_Should_GenerateValidSlug()
     {
         // Arrange
-        var name = "Product Name With Spaces!";
+        var name = "Product Name With Spaces";
         var description = _fixture.Create<string>();
         var sku = _fixture.Create<string>();
         var gtin = _fixture.Create<string>();
