@@ -227,7 +227,7 @@ jobs:
       - name: Find all services
         id: find_services
         run: |
-          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | sed -E 's/^digests-(.*)-[^-]+$/\1/' | sort | uniq)
+          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | rev | cut -d'-' -f2- | rev | sed 's/^digests-//g' | sort | uniq)
           echo "SERVICES=$SERVICES" >> $GITHUB_ENV
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
       - name: Create, scan, and delete manifests per service
