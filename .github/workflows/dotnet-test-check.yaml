@@ -252,8 +252,10 @@ jobs:
             exit 1
           fi
           SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | rev | cut -d'-' -f2- | rev | sed 's/^digests-//g' | sort | uniq)
-          echo "SERVICES=$SERVICES" >> $GITHUB_ENV
-          SERVICES_CSV=$(echo "$SERVICES" | paste -sd "," -)
+          SERVICES_ENV=$(echo "$SERVICES" | paste -sd ' ' -)
+          # Always quote the value for GITHUB_ENV
+          echo "SERVICES=\"$SERVICES_ENV\"" >> $GITHUB_ENV
+          SERVICES_CSV=$(echo "$SERVICES" | paste -sd ',' -)
           echo "services=$SERVICES_CSV" >> $GITHUB_OUTPUT
       - name: Create, scan, and delete manifests per service
         run: |
