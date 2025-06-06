@@ -198,6 +198,10 @@ jobs:
           tags: ghcr.io/${{ env.REPO_LOWER }}/${{ env.SERVICE_NAME }}:${{ github.sha }}-${{ env.PLATFORM_PAIR }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: List digests before upload
+        run: |
+          echo "Listing contents of ${{ runner.temp }}/digests before upload:"
+          ls -l ${{ runner.temp }}/digests || echo "No digests directory"
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
