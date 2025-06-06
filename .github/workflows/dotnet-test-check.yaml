@@ -198,6 +198,8 @@ jobs:
           tags: ghcr.io/${{ env.REPO_LOWER }}/${{ env.SERVICE_NAME }}:${{ github.sha }}-${{ env.PLATFORM_PAIR }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          outputs: |
+            type=digest,dest=${{ runner.temp }}/digests/digests-${{ env.SERVICE_NAME }}-${{ env.PLATFORM_PAIR }}
       - name: List digests before upload
         run: |
           echo "Listing contents of ${{ runner.temp }}/digests before upload:"
