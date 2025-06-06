@@ -13,6 +13,8 @@ permissions:
 
 env:
   DOTNET_VERSION: "9.0.*"
+  REGISTRY: ghcr.io
+  REPOSITORY: ${{ github.repository }}
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -81,29 +83,28 @@ jobs:
         run: dotnet build TeckShop.sln -c Release --no-restore
 
       - name: Test
-        run: dotnet test TeckShop.sln -c Release --no-restore --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+        run: dotnet test TeckShop.sln -c Release --no-restore --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage" --blame
 
       - name: Combine Coverage Reports # This is because one report is produced per project, and we want one result for all of them.
         uses: danielpalme/ReportGenerator-GitHub-Action@5.2.4
-        if: github.event_name == 'pull_request'
         with:
-          reports: "**/*.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
-          targetdir: "${{ github.workspace }}" # REQUIRED # The directory where the generated report should be saved.
-          reporttypes: "Cobertura" # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, Html_Dark, Html_Light, Html_BlueRed, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlInline_AzurePipelines_Light, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MarkdownSummaryGithub, MarkdownDeltaSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, TextDeltaSummary, Xml, XmlSummary
-          verbosity: "Info" # The verbosity level of the log messages. Values: Verbose, Info, Warning, Error, Off
-          title: "Code Coverage" # Optional title.
-          tag: "${{ github.run_number }}_${{ github.run_id }}" # Optional tag or build version.
-          customSettings: "" # Optional custom settings (separated by semicolon). See: https://github.com/danielpalme/ReportGenerator/wiki/Settings.
-          toolpath: "reportgeneratortool" # Default directory for installing the dotnet tool.
+          reports: "**/*.cobertura.xml"
+          targetdir: "${{ github.workspace }}"
+          reporttypes: "Cobertura"
+          verbosity: "Info"
+          title: "Code Coverage"
+          tag: "${{ github.run_number }}_${{ github.run_id }}"
+          customSettings: ""
+          toolpath: "reportgeneratortool"
+
       - name: Upload Combined Coverage XML
-        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ${{ github.workspace }}/Cobertura.xml
           retention-days: 5
+
       - name: Publish Code Coverage Report
-        if: github.event_name == 'pull_request'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: "Cobertura.xml"
@@ -115,43 +116,130 @@ jobs:
           indicators: true
           output: both
           thresholds: "10 30"
+
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
           recreate: true
           path: code-coverage-results.md
+
       - name: Upload Test Result Files
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: ${{ github.workspace }}/**/TestResults/**/*
           retention-days: 5
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.17.0
         if: always()
         with:
           trx_files: "${{ github.workspace }}/**/*.trx"
 
+      - name: Check formatting
+        run: dotnet format --verify-no-changes
+        continue-on-error: true
+
   build-test-docker:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.builder.runner-image }}
     name: Build and test docker image
-    needs: [pre-checks, check-label]
+    needs: build-test-dotnet
     if: ${{ needs.pre-checks.outputs.hasChanged == 'true' && needs.check-label.outputs.status == 'success'}}
     strategy:
       matrix:
-        # Parse JSON array containing names of all filters matching any of changed files
-        # e.g. ['package1', 'package2'] if both package folders contains changes
         paths: ${{ fromJson( needs.pre-checks.outputs.paths)}}
+        builder:
+          - runner-image: ubuntu-24.04
+            platform: linux/amd64
+          - runner-image: ubuntu-24.04-arm
+            platform: linux/arm64
     steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.builder.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          tags: ${{ github.sha }}
+      - name: Log in to GitHub container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build and test
+      - name: Build and push image
+        id: build
         uses: docker/build-push-action@v6
         with:
-          target: build
-          load: true
-          file: ${{ matrix.paths}}
+          context: .
+          file: ${{ matrix.paths }}
+          platforms: ${{ matrix.builder.platform }}
+          push: true
+          tags: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]'):${{ github.sha }}-${{ matrix.builder.platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build-test-docker
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+      - name: Log in to GitHub container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          tags: ${{ github.sha }}
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          docker buildx imagetools create -t ${{ env.REGISTRY }}/${repo_lower}:${{ github.sha }} \
+            $(for f in *; do echo "${{ env.REGISTRY }}/${repo_lower}@sha256:$f"; done)
+      - name: Inspect image
+        run: |
+          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${repo_lower}:${{ github.sha }}
+      - name: Scan merged image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]'):${{ github.sha }}
+        continue-on-error: true
+      - name: Delete merged image from GHCR
+        run: |
+          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          gh api -X DELETE "/user/packages/container/${repo_lower}/versions/$(gh api /user/packages/container/${repo_lower}/versions --jq ".[] | select(.metadata.container.tags[]? == \"${{ github.sha }}\") | .id")"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
