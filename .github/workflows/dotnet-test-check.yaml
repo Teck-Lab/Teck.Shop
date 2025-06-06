@@ -187,6 +187,8 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
       - name: Build and push image
         id: build
         uses: docker/build-push-action@v6
@@ -198,8 +200,14 @@ jobs:
           tags: ghcr.io/${{ env.REPO_LOWER }}/${{ env.SERVICE_NAME }}:${{ github.sha }}-${{ env.PLATFORM_PAIR }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: |
-            type=digest,dest=${{ runner.temp }}/digests/digests-${{ env.SERVICE_NAME }}-${{ env.PLATFORM_PAIR }}
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/digests-$SERVICE_NAME-$PLATFORM_PAIR-${digest#sha256:}"
+        env:
+          SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          PLATFORM_PAIR: ${{ env.PLATFORM_PAIR }}
       - name: List digests before upload
         run: |
           echo "Listing contents of ${{ runner.temp }}/digests before upload:"
@@ -207,7 +215,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ env.SERVICE_NAME }}-${{ env.PLATFORM_PAIR }}
+          name: digests-$SERVICE_NAME-$PLATFORM_PAIR
           path: ${{ runner.temp }}/digests/*
 
   merge:
