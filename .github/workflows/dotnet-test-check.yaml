@@ -160,17 +160,14 @@ jobs:
     steps:
       - name: Prepare
         run: |
-          platform=${{ matrix.builder.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "REPO_LOWER=$(echo '${{ env.REPOSITORY }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "PLATFORM_PAIR=$(echo '${{ matrix.builder.platform }}' | sed 's/\//-/')" >> $GITHUB_ENV
       - uses: actions/checkout@v4
-      - name: Prepare lowercase repository
-        id: repo
-        run: echo "REPO_LOWER=$(echo '${{ env.REPOSITORY }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}
+          images: ghcr.io/${{ env.REPO_LOWER }}
           tags: ${{ github.sha }}
       - name: Log in to GitHub container registry
         uses: docker/login-action@v3
@@ -190,14 +187,9 @@ jobs:
           file: ${{ matrix.paths }}
           platforms: ${{ matrix.builder.platform }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}-${{ matrix.builder.platform }}
+          tags: ghcr.io/${{ env.REPO_LOWER }}:${{ github.sha }}-${{ env.PLATFORM_PAIR }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
@@ -208,6 +200,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-test-docker
     steps:
+      - name: Prepare lowercase repository
+        run: echo "REPO_LOWER=$(echo '${{ env.REPOSITORY }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -226,20 +220,20 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}
+          images: ghcr.io/${{ env.REPO_LOWER }}
           tags: ${{ github.sha }}
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }} \
-            $(for f in *; do echo "${{ env.REGISTRY }}/${{ env.REPO_LOWER }}@sha256:$f"; done)
+          docker buildx imagetools create -t ghcr.io/${{ env.REPO_LOWER }}:${{ github.sha }} \
+            $(for f in *; do echo "ghcr.io/${{ env.REPO_LOWER }}@sha256:$f"; done)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}
+          docker buildx imagetools inspect ghcr.io/${{ env.REPO_LOWER }}:${{ github.sha }}
       - name: Scan merged image for vulnerabilities
         uses: aquasecurity/trivy-action@0.21.0
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}
+          image-ref: ghcr.io/${{ env.REPO_LOWER }}:${{ github.sha }}
         continue-on-error: true
       - name: Delete merged image from GHCR
         run: |
