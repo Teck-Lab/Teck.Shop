@@ -227,7 +227,7 @@ jobs:
       - name: Find all services
         id: find_services
         run: |
-          SERVICES=$(find ${{ runner.temp }}/digests -type d -mindepth 1 -maxdepth 1 -exec basename {} \; | sort | uniq)
+          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | cut -d'-' -f2 | sort | uniq)
           echo "SERVICES=$SERVICES" >> $GITHUB_ENV
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
       - name: Create, scan, and delete manifests per service
@@ -235,12 +235,12 @@ jobs:
           set -e
           ORG=$(echo "${{ github.repository }}" | cut -d'/' -f1)
           for SERVICE in $SERVICES; do
-            DIGEST_DIR="${{ runner.temp }}/digests/$SERVICE"
-            if [ -d "$DIGEST_DIR" ]; then
+            DIGEST_FILES=$(find ${{ runner.temp }}/digests -type f -name "digests-$SERVICE-*")
+            if [ -n "$DIGEST_FILES" ]; then
               echo "\n--- Processing $SERVICE ---"
               # Create manifest
               docker buildx imagetools create -t ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} \
-                $(for f in $DIGEST_DIR/*; do echo "ghcr.io/$REPO_LOWER/$SERVICE@sha256:$(basename $f)"; done)
+                $(for f in $DIGEST_FILES; do echo "ghcr.io/$REPO_LOWER/$SERVICE@sha256:$(basename $f)"; done)
               # Inspect
               docker buildx imagetools inspect ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}
               # Scan
