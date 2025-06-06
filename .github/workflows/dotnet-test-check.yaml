@@ -215,7 +215,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-$SERVICE_NAME-$PLATFORM_PAIR
+          name: digests-$SERVICE_NAME-$PLATFORM_PAIR-${{ matrix.paths }}
           path: ${{ runner.temp }}/digests/*
 
   merge:
