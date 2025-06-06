@@ -144,7 +144,10 @@ jobs:
   build-test-docker:
     runs-on: ${{ matrix.builder.runner-image }}
     name: Build and test docker image
-    needs: build-test-dotnet
+    needs: 
+      - build-test-dotnet
+      - pre-checks
+      - check-label
     if: ${{ needs.pre-checks.outputs.hasChanged == 'true' && needs.check-label.outputs.status == 'success'}}
     strategy:
       matrix:
