@@ -163,11 +163,14 @@ jobs:
           platform=${{ matrix.builder.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
+      - name: Prepare lowercase repository
+        id: repo
+        run: echo "REPO_LOWER=$(echo '${{ env.REPOSITORY }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          images: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}
           tags: ${{ github.sha }}
       - name: Log in to GitHub container registry
         uses: docker/login-action@v3
@@ -187,7 +190,7 @@ jobs:
           file: ${{ matrix.paths }}
           platforms: ${{ matrix.builder.platform }}
           push: true
-          tags: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]'):${{ github.sha }}-${{ matrix.builder.platform }}
+          tags: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}-${{ matrix.builder.platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Export digest
@@ -223,26 +226,23 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
+          images: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}
           tags: ${{ github.sha }}
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
-          docker buildx imagetools create -t ${{ env.REGISTRY }}/${repo_lower}:${{ github.sha }} \
-            $(for f in *; do echo "${{ env.REGISTRY }}/${repo_lower}@sha256:$f"; done)
+          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }} \
+            $(for f in *; do echo "${{ env.REGISTRY }}/${{ env.REPO_LOWER }}@sha256:$f"; done)
       - name: Inspect image
         run: |
-          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${repo_lower}:${{ github.sha }}
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}
       - name: Scan merged image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@0.21.0
         with:
-          image-ref: ${{ env.REGISTRY }}/$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]'):${{ github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.REPO_LOWER }}:${{ github.sha }}
         continue-on-error: true
       - name: Delete merged image from GHCR
         run: |
-          repo_lower=$(echo "${{ env.REPOSITORY }}" | tr '[:upper:]' '[:lower:]')
-          gh api -X DELETE "/user/packages/container/${repo_lower}/versions/$(gh api /user/packages/container/${repo_lower}/versions --jq ".[] | select(.metadata.container.tags[]? == \"${{ github.sha }}\") | .id")"
+          gh api -X DELETE "/user/packages/container/${{ env.REPO_LOWER }}/versions/$(gh api /user/packages/container/${{ env.REPO_LOWER }}/versions --jq ".[] | select(.metadata.container.tags[]? == \"${{ github.sha }}\") | .id")"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
