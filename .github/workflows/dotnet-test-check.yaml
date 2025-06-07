@@ -139,7 +139,7 @@ jobs:
           trx_files: "${{ github.workspace }}/**/*.trx"
 
       - name: Check formatting
-        run: dotnet format --verify-no-changes
+        run: dotnet format TeckShop.sln --verify-no-changes
         continue-on-error: true
         
       - name: Security scan with Trivy (SARIF)
@@ -212,4 +212,4 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          target: build-env
+          target: build
