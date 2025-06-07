@@ -281,8 +281,6 @@ jobs:
                 done)
               # Inspect
               docker buildx imagetools inspect ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}
-              # Scan
-              docker run --rm aquasec/trivy:0.49.1 image --exit-code 0 --no-progress ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} || true
               # Delete (use org endpoint)
               IMAGE_ID=$(gh api /orgs/$ORG/packages/container/$REPO_LOWER/$SERVICE/versions --jq ".[] | select(.metadata.container.tags[]? == \"${{ github.sha }}\") | .id")
               if [ -n "$IMAGE_ID" ]; then
