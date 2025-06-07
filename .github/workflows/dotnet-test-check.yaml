@@ -270,7 +270,8 @@ jobs:
                 $(for f in $DIGEST_FILES; do \
                   FBASE=$(basename $f); \
                   FBASE=${FBASE#digests-}; \
-                  SERVICE_PART=$(echo $FBASE | sed -E 's/-[^-]+-[^-]+$//'); \
+                  # Service name is everything up to the last two dashes (platform and digest)
+                  SERVICE_PART=$(echo $FBASE | sed -E 's/-[^-]+-[^-]+$//;s/-[^-]+$//'); \
                   PLATFORM_PAIR=$(echo $FBASE | sed -E 's/.*-([^-]+-[^-]+)-[^-]+$/\1/'); \
                   echo "ghcr.io/$REPO_LOWER/$SERVICE_PART:${{ github.sha }}-$PLATFORM_PAIR"; \
                 done)
