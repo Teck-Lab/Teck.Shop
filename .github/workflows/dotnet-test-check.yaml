@@ -170,6 +170,8 @@ jobs:
           DOCKERFILE_PATH="${{ matrix.paths }}"
           # Remove leading directories and trailing '/Dockerfile', replace / and . with -
           SERVICE_NAME=$(basename "$(dirname "$DOCKERFILE_PATH")" | tr '[:upper:]' '[:lower:]' | sed 's/\./-/g')
+          # Remove any trailing platform info if present (shouldn't be, but extra safety)
+          SERVICE_NAME=$(echo "$SERVICE_NAME" | sed -E 's/-linux-(amd64|arm64)$//')
           echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
@@ -251,7 +253,11 @@ jobs:
             echo "No digest files found in ${{ runner.temp }}/digests. Exiting."
             exit 1
           fi
-          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | rev | cut -d'-' -f2- | rev | sed 's/^digests-//g' | sort | uniq)
+          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | \
+            rev | cut -d'-' -f2- | rev | \
+            sed 's/^digests-//g' | \
+            sed -E 's/-linux-(amd64|arm64)$//' | \
+            sort | uniq)
           SERVICES_ENV=$(echo "$SERVICES" | paste -sd ' ' -)
           # Always quote the value for GITHUB_ENV
           echo "SERVICES=\"$SERVICES_ENV\"" >> $GITHUB_ENV
@@ -265,7 +271,7 @@ jobs:
             DIGEST_FILES=$(find ${{ runner.temp }}/digests -type f -name "digests-$SERVICE-*")
             if [ -n "$DIGEST_FILES" ]; then
               echo "\n--- Processing $SERVICE ---"
-              # Correctly extract service name and platform pair for tag reference
+              # Always create the manifest as service:sha, referencing service:sha-platform for each platform
               docker buildx imagetools create -t ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} \
                 $(for f in $DIGEST_FILES; do \
                   FBASE=$(basename $f); \
