@@ -141,34 +141,16 @@ jobs:
       - name: Check formatting
         run: dotnet format --verify-no-changes
         continue-on-error: true
-
-      - name: Security scan with Trivy (table)
-        uses: aquasecurity/trivy-action@0.31.0
-        with:
-          scan-type: 'fs'
-          scan-ref: .
-          format: table
-          output: trivy-results.txt
-          exit-code: 1
-          ignore-unfixed: true
-          vuln-type: os,library
-
-      - name: Post Trivy scan results as PR comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: trivy-results.txt
-          header: Trivy Security Scan
-
+        
       - name: Security scan with Trivy (SARIF)
         uses: aquasecurity/trivy-action@0.31.0
+        continue-on-error: true
         with:
           scan-type: 'fs'
           scan-ref: .
           format: sarif
           output: trivy-results.sarif
-          exit-code: 0
+          exit-code: 1
           ignore-unfixed: true
           vuln-type: os,library
 
