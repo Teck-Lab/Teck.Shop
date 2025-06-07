@@ -267,7 +267,7 @@ jobs:
               echo "\n--- Processing $SERVICE ---"
               # Create manifest
               docker buildx imagetools create -t ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} \
-                $(for f in $DIGEST_FILES; do echo "ghcr.io/$REPO_LOWER/$SERVICE@sha256:$(basename $f)"; done)
+                $(for f in $DIGEST_FILES; do HASH=$(basename $f | rev | cut -d'-' -f1 | rev); echo "ghcr.io/$REPO_LOWER/$SERVICE@sha256:$HASH"; done)
               # Inspect
               docker buildx imagetools inspect ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}
               # Scan
