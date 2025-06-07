@@ -142,6 +142,41 @@ jobs:
         run: dotnet format --verify-no-changes
         continue-on-error: true
 
+      - name: Security scan with Trivy (table)
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          scan-type: 'fs'
+          scan-ref: .
+          format: table
+          output: trivy-results.txt
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library,config,secret,license
+
+      - name: Post Trivy scan results as PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: trivy-results.txt
+          header: Trivy Security Scan
+
+      - name: Security scan with Trivy (SARIF)
+        uses: aquasecurity/trivy-action@0.31.0
+        with:
+          scan-type: 'fs'
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: 0
+          ignore-unfixed: true
+          vuln-type: os,library,config,secret,license
+
+      - name: Upload Trivy scan results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
   build-test-docker:
     runs-on: ${{ matrix.builder.runner-image }}
     name: Build and test docker image
@@ -179,114 +214,19 @@ jobs:
         with:
           images: ghcr.io/${{ env.REPO_LOWER }}
           tags: ${{ github.sha }}
-      - name: Log in to GitHub container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           version: latest
-      - name: Build and push image
+      - name: Build image (no push)
         id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.paths }}
           platforms: ${{ matrix.builder.platform }}
-          push: true
-          tags: ghcr.io/${{ env.REPO_LOWER }}/${{ env.SERVICE_NAME }}:${{ github.sha }}-${{ env.PLATFORM_PAIR }}
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/digests-$SERVICE_NAME-$PLATFORM_PAIR-${digest#sha256:}"
-        env:
-          SERVICE_NAME: ${{ env.SERVICE_NAME }}
-          PLATFORM_PAIR: ${{ env.PLATFORM_PAIR }}
-      - name: List digests before upload
-        run: |
-          echo "Listing contents of ${{ runner.temp }}/digests before upload:"
-          ls -l ${{ runner.temp }}/digests || echo "No digests directory"
-      - name: Sanitize Dockerfile path for artifact name
-        id: sanitize_path
-        run: |
-          SANITIZED_PATH=$(echo "${{ matrix.paths }}" | sed 's#[/\\:*?"<>|]#-#g')
-          echo "sanitized_path=$SANITIZED_PATH" >> $GITHUB_OUTPUT
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-${{ env.SERVICE_NAME }}-${{ env.PLATFORM_PAIR }}-${{ steps.sanitize_path.outputs.sanitized_path }}
-          path: ${{ runner.temp }}/digests/*
-
-  merge:
-    runs-on: ubuntu-latest
-    needs: build-test-docker
-    steps:
-      - name: Prepare lowercase repository
-        run: echo "REPO_LOWER=$(echo '${{ env.REPOSITORY }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          path: ${{ runner.temp }}/digests
-          pattern: digests-*
-          merge-multiple: true
-      - name: Log in to GitHub container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Find all services
-        id: find_services
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          if ! compgen -G "${{ runner.temp }}/digests/digests-*" > /dev/null; then
-            echo "No digest files found in ${{ runner.temp }}/digests. Exiting."
-            exit 1
-          fi
-          SERVICES=$(find ${{ runner.temp }}/digests -type f -printf '%f\n' | \
-            rev | cut -d'-' -f2- | rev | \
-            sed 's/^digests-//g' | \
-            sed -E 's/-linux-(amd64|arm64)$//' | \
-            sort | uniq)
-          SERVICES_ENV=$(echo "$SERVICES" | paste -sd ' ' -)
-          # Always quote the value for GITHUB_ENV
-          echo "SERVICES=\"$SERVICES_ENV\"" >> $GITHUB_ENV
-          SERVICES_CSV=$(echo "$SERVICES" | paste -sd ',' -)
-          echo "services=$SERVICES_CSV" >> $GITHUB_OUTPUT
-      - name: Create, scan, and delete manifests per service
-        run: |
-          set -e
-          ORG=$(echo "${{ github.repository }}" | cut -d'/' -f1)
-          for SERVICE in $SERVICES; do
-            DIGEST_FILES=$(find ${{ runner.temp }}/digests -type f -name "digests-$SERVICE-*")
-            if [ -n "$DIGEST_FILES" ]; then
-              echo "\n--- Processing $SERVICE ---"
-              # Always create the manifest as service:sha, referencing service:sha-platform for each platform
-              docker buildx imagetools create -t ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} \
-                $(for f in $DIGEST_FILES; do \
-                  FBASE=$(basename $f); \
-                  FBASE=${FBASE#digests-}; \
-                  PLATFORM_PAIR=$(echo $FBASE | sed -E 's/.*-([^-]+-[^-]+)-[^-]+$/\1/'); \
-                  echo "ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}-$PLATFORM_PAIR"; \
-                done)
-              # Inspect
-              docker buildx imagetools inspect ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}
-              # Delete (use org endpoint)
-              IMAGE_ID=$(gh api /orgs/$ORG/packages/container/$REPO_LOWER/$SERVICE/versions --jq ".[] | select(.metadata.container.tags[]? == \"${{ github.sha }}\") | .id")
-              if [ -n "$IMAGE_ID" ]; then
-                gh api -X DELETE "/orgs/$ORG/packages/container/$REPO_LOWER/$SERVICE/versions/$IMAGE_ID"
-              fi
-            fi
-          done
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
