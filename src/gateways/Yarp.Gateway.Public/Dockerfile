@@ -16,15 +16,28 @@ COPY ["Directory.Packages.props", "."]
 COPY ["src/Directory.Build.props", "src/"]
 COPY ["Directory.Build.props", "."]
 COPY ["src/gateways/Yarp.Gateway.Public/Yarp.Gateway.Public.csproj", "src/gateways/Yarp.Gateway.Public/"]
-RUN dotnet restore "./src/gateways/Yarp.Gateway.Public/Yarp.Gateway.Public.csproj"
+
+# Use Docker Buildx and TARGETPLATFORM to select the correct RID for multi-platform builds
+ARG TARGETPLATFORM
+# Default to x64 if not set
+ARG RUNTIME_IDENTIFIER=linux-musl-x64
+
+# Map TARGETPLATFORM to .NET RID
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then export RID=linux-musl-arm64; else export RID=linux-musl-x64; fi && \
+    dotnet restore "src/gateways/Yarp.Gateway.Public/Yarp.Gateway.Public.csproj" -r $RID
+
 COPY . .
 WORKDIR "/src/src/gateways/Yarp.Gateway.Public"
-RUN dotnet build "./Yarp.Gateway.Public.csproj" -c $BUILD_CONFIGURATION -o /app/build -r linux-x64 /p:PublishReadyToRun=true
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then export RID=linux-musl-arm64; else export RID=linux-musl-x64; fi && \
+    dotnet build "Yarp.Gateway.Public.csproj" -c $BUILD_CONFIGURATION -o /app/build -r $RID /p:PublishReadyToRun=true
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Yarp.Gateway.Public.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r linux-x64 --self-contained true --no-restore /p:UseAppHost=true /p:PublishReadyToRun=true /p:PublishTrimmed=true
+ARG TARGETPLATFORM
+ARG RUNTIME_IDENTIFIER=linux-musl-x64
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then export RID=linux-musl-arm64; else export RID=linux-musl-x64; fi && \
+    dotnet publish "Yarp.Gateway.Public.csproj" -c $BUILD_CONFIGURATION -o /app/publish -r $RID --self-contained true --no-restore /p:UseAppHost=true /p:PublishReadyToRun=true /p:PublishTrimmed=true
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

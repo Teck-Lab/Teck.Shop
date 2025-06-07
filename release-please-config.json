@@ -1,0 +1,87 @@
+{
+    "include-component-in-tag": true,
+    "include-v-in-tag": true,
+    "tag-separator": "@",
+    "separate-pull-requests": false,
+    "changelog-sections": [
+        {
+            "type": "feat",
+            "section": "🚀 Features"
+        },
+        {
+            "type": "fix",
+            "section": "🐛 Bug Fixes"
+        },
+        {
+            "type": "perf",
+            "section": "⚡ Performance Improvements"
+        },
+        {
+            "type": "revert",
+            "section": "🔙 Reverts"
+        },
+        {
+            "type": "docs",
+            "section": "📝 Documentation"
+        },
+        {
+            "type": "style",
+            "section": "💅 Styles"
+        },
+        {
+            "type": "refactor",
+            "section": "♻️ Code Refactoring"
+        },
+        {
+            "type": "test",
+            "section": "🧪 Tests"
+        },
+        {
+            "type": "build",
+            "section": "👷‍♂️ Build System"
+        },
+        {
+            "type": "ci",
+            "section": "🔧 Continuous Integration"
+        },
+        {
+            "type": "chore",
+            "section": "🧹 Chores"
+        }
+    ],
+    "packages": {
+        "src/buildingblocks": {
+            "component": "buildingblocks",
+            "extra-files": [
+                {
+                    "type": "generic",
+                    "path": "src/buildingblocks/Directory.Build.props"
+                }
+            ],
+            "changelog-path": "src/buildingblocks/CHANGELOG.md"
+        },
+        "src/services/catalog": {
+            "component": "catalog",
+            "extra-files": [
+                "src/buildingblocks/**",
+                {
+                    "type": "generic",
+                    "path": "src/services/catalog/Directory.Build.props"
+                }
+            ],
+            "changelog-path": "src/services/catalog/CHANGELOG.md"
+        },
+        "src/gateways/Yarp.Gateway.Public": {
+            "component": "yarp-gateway-public",
+            "extra-files": [
+                "src/buildingblocks/**",
+                {
+                    "type": "generic",
+                    "path": "src/gateways/Directory.Build.props"
+                }
+            ],
+            "changelog-path": "src/gateways/CHANGELOG.md"
+        }
+    },
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}
