@@ -265,9 +265,17 @@ jobs:
             DIGEST_FILES=$(find ${{ runner.temp }}/digests -type f -name "digests-$SERVICE-*")
             if [ -n "$DIGEST_FILES" ]; then
               echo "\n--- Processing $SERVICE ---"
-              # Create manifest
+              # Create manifest using correct service name and platform pair (reference by tag only)
               docker buildx imagetools create -t ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }} \
-                $(for f in $DIGEST_FILES; do HASH=$(basename $f | rev | cut -d'-' -f1 | rev); echo "ghcr.io/$REPO_LOWER/$SERVICE@sha256:$HASH"; done)
+                $(for f in $DIGEST_FILES; do \
+                  FBASE=$(basename $f); \
+                  FBASE=${FBASE#digests-}; \
+                  # Service name is everything up to the last two dashes
+                  SERVICE_PART=$(echo $FBASE | rev | cut -d'-' -f3- | rev); \
+                  # Platform pair is the second-to-last dash-separated part
+                  PLATFORM_PAIR=$(echo $FBASE | rev | cut -d'-' -f2 | rev); \
+                  echo "ghcr.io/$REPO_LOWER/$SERVICE_PART:${{ github.sha }}-$PLATFORM_PAIR"; \
+                done)
               # Inspect
               docker buildx imagetools inspect ghcr.io/$REPO_LOWER/$SERVICE:${{ github.sha }}
               # Scan
