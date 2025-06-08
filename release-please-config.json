@@ -51,6 +51,7 @@
     ],
     "packages": {
         "src/buildingblocks": {
+            "release-type": "simple",
             "component": "buildingblocks",
             "extra-files": [
                 {
@@ -61,6 +62,7 @@
             "changelog-path": "src/buildingblocks/CHANGELOG.md"
         },
         "src/services/catalog": {
+            "release-type": "simple",
             "component": "catalog",
             "extra-files": [
                 "src/buildingblocks/**",
@@ -72,6 +74,7 @@
             "changelog-path": "src/services/catalog/CHANGELOG.md"
         },
         "src/gateways/Yarp.Gateway.Public": {
+            "release-type": "simple",
             "component": "yarp-gateway-public",
             "extra-files": [
                 "src/buildingblocks/**",
