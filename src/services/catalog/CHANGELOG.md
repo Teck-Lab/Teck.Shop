@@ -1,5 +1,12 @@
 # Changelog
 
+## catalog@v0.0.11 - 2025-06-08
+
+### What Changed 👀
+
+* No changes
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.0.10...catalog@v0.0.11
+
 ## catalog@v0.0.10 - 2025-06-08
 
 ### What Changed 👀
