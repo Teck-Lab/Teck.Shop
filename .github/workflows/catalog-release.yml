@@ -154,7 +154,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ needs.prepare-build.outputs.repository-lowercase }}
+          images: ${{ needs.prepare-build.outputs.repository-lowercase }}.api
           tags: |
             type=semver,pattern={{version}},value=${{ needs.release.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}
@@ -166,17 +166,9 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create \
-            -t ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }} \
-            $(for digest in *; do echo "${{ needs.prepare-build.outputs.repository-lowercase }}@sha256:$digest"; done)
+            -t ${{ needs.prepare-build.outputs.repository-lowercase }}.api:${{ needs.release.outputs.version }} \
+            $(for digest in *; do echo "${{ needs.prepare-build.outputs.repository-lowercase }}.api@sha256:$digest"; done)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }}
-          docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }} --verbose
-      - name: Clean up
-        run: |
-          docker logout ${{ env.REGISTRY }}
-          docker builder prune --all --force
-          docker image prune --all --force
-          docker volume prune --all --force
-          docker network prune --all --force
+          docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase  }}.api:${{ steps.meta.outputs.version }}
