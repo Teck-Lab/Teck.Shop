@@ -107,17 +107,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: ${{ matrix.builder.platform }}
-          build-args: |
-            TARGETPLATFORM=${{ matrix.builder.platform }}
           context: .
           file: src/services/catalog/Catalog.Api/Dockerfile
-          # Use PLATFORM_PAIR env var for valid Docker tag
-          tags: ${{ needs.prepare-build.outputs.repository-lowercase }}.api:build-${{ env.PLATFORM_PAIR }}
+          # Remove tags here; tag only in manifest merge step
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
-          cache-from: type=registry,ref=${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache
-          cache-to: type=registry,ref=${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache,mode=max
-          outputs: type=image,name=${{ needs.prepare-build.outputs.repository-lowercase }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache
+          cache-to: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache,mode=max
+          outputs: type=image,name=${{ needs.prepare-build.outputs.repository-lowercase }}.api,push-by-digest=true,name-canonical=true,push=true
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
@@ -175,3 +172,11 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }}
+          docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }} --verbose
+      - name: Clean up
+        run: |
+          docker logout ${{ env.REGISTRY }}
+          docker builder prune --all --force
+          docker image prune --all --force
+          docker volume prune --all --force
+          docker network prune --all --force
