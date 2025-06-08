@@ -54,7 +54,21 @@
             "release-type": "simple",
             "component": "buildingblocks",
             "extra-files": [
-                "src/buildingblocks/Directory.Build.props"
+                {
+                    "type": "xml",
+                    "path": "src/buildingblocks/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/Version"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/buildingblocks/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/FileVersion"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/buildingblocks/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/AssemblyVersion"
+                }
             ],
             "changelog-path": "src/buildingblocks/CHANGELOG.md"
         },
@@ -63,7 +77,21 @@
             "component": "catalog",
             "extra-files": [
                 "src/buildingblocks/**",
-                "src/services/catalog/Directory.Build.props"
+                {
+                    "type": "xml",
+                    "path": "src/services/catalog/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/Version"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/services/catalog/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/FileVersion"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/services/catalog/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/AssemblyVersion"
+                }
             ],
             "changelog-path": "src/services/catalog/CHANGELOG.md"
         },
@@ -72,7 +100,22 @@
             "component": "yarp-gateway-public",
             "extra-files": [
                 "src/buildingblocks/**",
-                "src/gateways/Directory.Build.props"
+                "src/gateways/Directory.Build.props",
+                {
+                    "type": "xml",
+                    "path": "src/gateways/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/Version"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/gateways/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/FileVersion"
+                },
+                {
+                    "type": "xml",
+                    "path": "src/gateways/Directory.Build.props",
+                    "xpath": "//Project/PropertyGroup/AssemblyVersion"
+                }
             ],
             "changelog-path": "src/gateways/CHANGELOG.md"
         }
