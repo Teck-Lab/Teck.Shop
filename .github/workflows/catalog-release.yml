@@ -171,12 +171,3 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}.api:${{ needs.release.outputs.version }}
-      - name: Clean up
-        run: |
-          docker logout ${{ env.REGISTRY }}
-          docker builder prune --all --force
-          docker system prune --all --force
-          # Remove all per-platform images by digest from the registry
-          for digest in $(ls ${{ runner.temp }}/digests); do
-            docker buildx imagetools rm ${{ needs.prepare-build.outputs.repository-lowercase }}.api@sha256:$digest || true
-          done
