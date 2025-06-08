@@ -1,5 +1,5 @@
 {
-  "src/buildingblocks": "0.0.1",
-  "src/services/catalog": "0.0.1",
-  "src/gateways/Yarp.Gateway.Public": "0.0.1"
+  "src/buildingblocks": "0.0.2",
+  "src/services/catalog": "0.0.2",
+  "src/gateways/Yarp.Gateway.Public": "0.0.2"
 }
