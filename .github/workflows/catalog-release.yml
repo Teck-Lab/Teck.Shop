@@ -107,8 +107,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: ${{ matrix.builder.platform }}
+          build-args: |
+            TARGETPLATFORM=${{ matrix.builder.platform }}
           context: .
-          file: apps/web/Dockerfile
+          file: src/services/catalog/Catalog.Api/Dockerfile
           # Use PLATFORM_PAIR env var for valid Docker tag
           tags: ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:build-${{ env.PLATFORM_PAIR }}
           labels: ${{ steps.meta.outputs.labels }}
