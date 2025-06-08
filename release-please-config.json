@@ -56,21 +56,21 @@
             "extra-files": [
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
-            "changelog-path": "src/buildingblocks/CHANGELOG.md"
+            "changelog-path": "CHANGELOG.md"
         },
         "src/services/catalog": {
             "release-type": "simple",
@@ -78,21 +78,21 @@
             "extra-files": [
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
-            "changelog-path": "src/services/catalog/CHANGELOG.md"
+            "changelog-path": "CHANGELOG.md"
         },
         "src/gateways/Yarp.Gateway.Public": {
             "release-type": "simple",
@@ -100,21 +100,21 @@
             "extra-files": [
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "/Directory.Build.props",
+                    "path": "Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
-            "changelog-path": "src/gateways/CHANGELOG.md"
+            "changelog-path": "CHANGELOG.md"
         }
     },
     "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
