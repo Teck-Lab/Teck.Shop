@@ -33,7 +33,7 @@ jobs:
         uses: release-drafter/release-drafter@v6
         id: semantic
         with:
-          config-name: catalog-draft-release-drafter.yml
+          config-name: catalog-release-drafter.yml
           disable-autolabeler: true
           disable-releaser: false
           commitish: main
@@ -70,7 +70,8 @@ jobs:
           branch: release/catalog
           delete-branch: true
           title: "chore: release ${{needs.release-draft.outputs.tag-name}}"
-          commit-message: "chore: updated version"
+          commit-message: "chore: release ${{needs.release-draft.outputs.tag-name}}"
+          body: ${{needs.release-draft.outputs.changelog}}
           token: ${{ steps.generate-token.outputs.token }}
           labels: |
             skip-changelog
