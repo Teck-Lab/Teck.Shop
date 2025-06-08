@@ -43,5 +43,3 @@ app.UseFastEndpointsInfrastructure();
 app.UseOpenApiInfrastructure(openApiOptions, appOptions);
 
 await app.RunAsync();
-
-// test release
