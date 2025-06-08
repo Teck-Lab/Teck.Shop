@@ -1,5 +1,22 @@
 # Changelog
 
+## catalog@v0.1.0 - 2025-06-08
+
+### What Changed 👀
+
+### 🚀 Features
+
+- feat: real test release @CaptainPowerTurtle (#24)
+
+### 🐛 Bug Fixes
+
+- feat: real test release @CaptainPowerTurtle (#24)
+
+### 👷 CI
+
+- feat: real test release @CaptainPowerTurtle (#24)
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.0.11...catalog@v0.1.0
+
 ## catalog@v0.0.11 - 2025-06-08
 
 ### What Changed 👀
