@@ -1,4 +1,4 @@
-_extends: teckshop:.github/release-drafter.yml
+_extends: teck.shop:.github/release-drafter.yml
 name-template: 'Catalog: v$RESOLVED_VERSION'
 tag-template: 'catalog@v$RESOLVED_VERSION'
 tag-prefix: catalog@

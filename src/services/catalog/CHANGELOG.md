@@ -1,5 +1,26 @@
 # Changelog
 
+## catalog@v0.0.6 - 2025-06-08
+
+### What Changed 👀
+
+* No changes
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.0.5...catalog@v0.0.6
+
+## catalog@v0.0.5 - 2025-06-08
+
+### What Changed 👀
+
+* No changes
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.0.4...catalog@v0.0.5
+
+## catalog@v0.0.4 - 2025-06-08
+
+### What Changed 👀
+
+* No changes
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.0.3...catalog@v0.0.4
+
 ## catalog@v0.0.3 - 2025-06-08
 
 ### What Changed 👀
