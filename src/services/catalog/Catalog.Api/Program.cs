@@ -43,5 +43,3 @@ app.UseFastEndpointsInfrastructure();
 app.UseOpenApiInfrastructure(openApiOptions, appOptions);
 
 await app.RunAsync();
-
-//Just to make it build
