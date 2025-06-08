@@ -2,6 +2,7 @@
     "include-component-in-tag": true,
     "tag-separator": "@",
     "separate-pull-requests": false,
+    "include-v-in-tag": true,
     "changelog-sections": [
         {
             "type": "feat",
@@ -55,17 +56,17 @@
             "extra-files": [
                 {
                     "type": "xml",
-                    "path": "src/buildingblocks/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "src/buildingblocks/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "src/buildingblocks/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
@@ -75,20 +76,19 @@
             "release-type": "simple",
             "component": "catalog",
             "extra-files": [
-                "src/buildingblocks/**",
                 {
                     "type": "xml",
-                    "path": "src/services/catalog/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "src/services/catalog/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "src/services/catalog/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
@@ -98,21 +98,19 @@
             "release-type": "simple",
             "component": "yarp-gateway-public",
             "extra-files": [
-                "src/buildingblocks/**",
-                "src/gateways/Directory.Build.props",
                 {
                     "type": "xml",
-                    "path": "src/gateways/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/Version"
                 },
                 {
                     "type": "xml",
-                    "path": "src/gateways/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/FileVersion"
                 },
                 {
                     "type": "xml",
-                    "path": "src/gateways/Directory.Build.props",
+                    "path": "/Directory.Build.props",
                     "xpath": "//Project/PropertyGroup/AssemblyVersion"
                 }
             ],
