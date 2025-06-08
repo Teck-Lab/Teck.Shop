@@ -1,0 +1,264 @@
+name: Build and publish catalog docker images
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+    paths:
+      - "src/services/catalog/Directory.Build.props"
+      # - "src/services/catalog/**"
+      # - "src/buildingblocks/**"
+      # - "src/Directory.Packages.props"
+      # - "src/Directory.Build.props"
+env:
+  REGISTRY: ghcr.io
+  REPOSITORY: ${{ github.repository }}
+  PROJECT: catalog
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  check-label:
+    if: github.event.pull_request.merged == true
+    name: Check label
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{steps.label-check.outputs.label_check}}
+    steps:
+      - name: check-conventional-commits-labels
+        uses: docker://agilepathway/pull-request-label-checker:latest
+        id: label-check
+        with:
+          one_of: release
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          allow_failure: true
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [check-label]
+    if: needs.check-label.outputs.status == 'success'
+    outputs:
+      version: ${{ steps.semantic.outputs.resolved_version }}
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+        with:
+          fetch-depth: 0
+      - name: Update Release Draft
+        uses: release-drafter/release-drafter@v6
+        id: semantic
+        with:
+          config-name: catalog-release-drafter.yml
+          disable-autolabeler: true
+          commitish: main
+          publish: true
+          disable-releaser: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+  prepare-build:
+    runs-on: ubuntu-latest
+    outputs:
+      repository-lowercase: ${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}/${{ env.PROJECT }}
+    steps:
+      - uses: ASzc/change-string-case-action@v6
+        id: string
+        with:
+          string: ${{ env.REPOSITORY }}
+
+  build-api:
+    name: Build and push Api image v${{ needs.release.outputs.version }}
+    runs-on: ${{ matrix.builder.runner-image }}
+    needs: [release, prepare-build]
+    strategy:
+      fail-fast: false
+      matrix:
+        builder:
+          - runner-image: ubuntu-24.04
+            platform: linux/amd64
+          - runner-image: ubuntu-24.04-arm
+            platform: linux/arm64
+
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.builder.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ needs.prepare-build.outputs.repository-lowercase }}
+      - name: Log in to GitHub container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push container image to registry
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.builder.platform }}
+          # OCI compliant when set to false, should fix unknown/unknown arch
+          # push: ${{ github.event_name != 'pull_request' }}
+          context: .
+          file: apps/web/Dockerfile
+          tags: ghcr.io/${{ github.repository }}/catalog.api:build-${{ matrix.builder.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          # cache-from: type=gha,scope=${{ needs.prepare-build.outputs.repository-lowercase }}-${{ env.PLATFORM_PAIR }}
+          # cache-to: type=gha,scope=${{ needs.prepare-build.outputs.repository-lowercase }}-${{ env.PLATFORM_PAIR }},mode=max
+          # cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ needs.prepare-build.outputs.repository-lowercase }}/catalog.api:dockercache
+          # cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ needs.prepare-build.outputs.repository-lowercase }}/catalog.api:dockercache,mode=max,image-manifest=true
+          # outputs: type=image,name=${{ needs.prepare-build.outputs.repository-lowercase }},push-by-digest=true,name-canonical=true,push=true
+
+          cache-from: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}/catalog.api:dockercache
+          cache-to: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}/catalog.api:dockercache,mode=max
+          outputs: type=image,name=${{ needs.prepare-build.outputs.repository-lowercase }},push-by-digest=true,name-canonical=true,push=true
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build-api
+      - prepare-build
+      - release
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Log in to GitHub container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ needs.prepare-build.outputs.repository-lowercase }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=tag
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create \
+            -t ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }} \
+            $(for digest in *; do echo "${{ needs.prepare-build.outputs.repository-lowercase }}@sha256:$digest"; done)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ needs.prepare-build.outputs.repository-lowercase }}:${{ needs.release.outputs.version }}
+
+
+
+          
+  #     - name: Extract metadata (tags, labels) for Docker
+  #       id: meta
+  #       uses: docker/metadata-action@v4
+  #       with:
+  #         images: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/catalog.api
+  #         tags: |
+  #           type=semver,pattern={{version}},value=${{ needs.release.outputs.version }}
+  #           type=semver,pattern={{major}}.{{minor}}
+  #           type=ref,event=tag
+  #           type=ref,event=branch
+  #           type=ref,event=pr
+  #           type=sha
+  #     - id: string
+  #       uses: ASzc/change-string-case-action@v6
+  #       with:
+  #         string: ${{ env.REPOSITORY }}
+  #     - name: Build and push container image to registry
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         platforms:
+  #           linux/amd64,linux/arm64
+  #           # OCI compliant when set to false, should fix unknown/unknown arch
+  #         provenance: false
+  #         # push: ${{ github.event_name != 'pull_request' }}
+  #         push: true
+  #         pull: true
+  #         context: .
+  #         file: src/services/catalog/Catalog.Api/Dockerfile
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}/catalog.api:dockercache
+  #         cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}/catalog.api:dockercache,mode=max,image-manifest=true
+  # build-migration:
+  #   name: Build and push Migration image v${{ needs.release.outputs.version }}
+  #   runs-on: ubuntu-latest
+  #   needs: [release]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     - name: Log in to GitHub container registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Extract metadata (tags, labels) for Docker
+  #       id: meta
+  #       uses: docker/metadata-action@v4
+  #       with:
+  #         images: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/catalog.migration
+  #         tags: |
+  #           type=semver,pattern={{version}},value=${{ needs.release.outputs.version }}
+  #           type=semver,pattern={{major}}.{{minor}}
+  #           type=ref,event=tag
+  #           type=ref,event=branch
+  #           type=ref,event=pr
+  #           type=sha
+  #     - id: string
+  #       uses: ASzc/change-string-case-action@v6
+  #       with:
+  #         string: ${{ env.REPOSITORY }}
+  #     - name: Build and push container image to registry
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         platforms:
+  #           linux/amd64,linux/arm64
+  #           # OCI compliant when set to false, should fix unknown/unknown arch
+  #         provenance: false
+  #         # push: ${{ github.event_name != 'pull_request' }}
+  #         push: true
+  #         pull: true
+  #         context: .
+  #         file: src/services/catalog/Catalog.MigrationService/Dockerfile
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}/catalog.migration:dockercache
+  #         cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}/catalog.migration:dockercache,mode=max,image-manifest=true
