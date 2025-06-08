@@ -1,0 +1,105 @@
+# https://github.com/fuxingloh/multi-labeler
+# https://stackoverflow.com/questions/58899999/regexp-to-match-conventional-commit-syntax
+version: v1
+
+labels:
+- label: 'feature'
+  sync: true
+  matcher:
+    title: '^feat:.*'
+    branch: '^feat/.*'
+    commits: '^feat:.*'
+
+- label: 'bug'
+  sync: true
+  matcher:
+    title: '^fix:.*'
+    branch: '^fix/.*'
+    commits: '^fix:.*'
+
+- label: 'chore'
+  matcher:
+    title: '^chore: .*'
+    commits: '^chore: .*'
+
+- label: 'bug'
+  sync: true
+  matcher:
+    title: '^docs:.*'
+    branch: '^docs/.*'
+    commits: '^docs:.*'
+
+- label: 'devops'
+  sync: true
+  matcher:
+    title: '^ci:.*'
+    branch: '^ci/.*'
+    commits: '^ci:.*'
+    files:
+      any: ['.github/**']
+
+- label: 'ci-cd'
+  sync: true
+  matcher:
+    title: '^ci:.*'
+    branch: '^ci/.*'
+    commits: '^ci:.*'
+    files:
+      any: ['.github/**']
+
+- label: 'enhancement'
+  sync: true
+  matcher:
+    title: '^refactor:.*'
+    branch: '^refactor/.*'
+    commits: '^refactor:.*'
+
+- label: 'style'
+  sync: true
+  matcher:
+    title: '^style:.*'
+    branch: '^style/.*'
+    commits: '^style:.*'
+
+- label: 'performance'
+  sync: true
+  matcher:
+    title: '^perf:.*'
+    branch: '^perf/.*'
+    commits: '^perf:.*'
+
+- label: 'build'
+  sync: true
+  matcher:
+    title: '^build:.*'
+    branch: '^build/.*'
+    commits: '^build:.*'
+    files:
+      any: ['**/Dockerfile']
+
+- label: 'test'
+  sync: true
+  matcher:
+    title: '^test:.*'
+    branch: '^test/.*'
+    commits: '^test:.*'
+    files:
+      any: ['tests/*']
+
+- label: 'dependencies'
+  sync: true
+  matcher:
+    title: '^build:.*'
+    branch: '^build/.*'
+    commits: '^build:.*'
+
+- label: 'breaking-change'
+  sync: true
+  matcher:
+    title: '^.*!:.*'
+    commits: '^.*!:.*'
+
+- label: dependencies
+  matcher:
+    branch: '^dependabot/.*'
+      
