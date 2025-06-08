@@ -111,7 +111,7 @@ jobs:
           # push: ${{ github.event_name != 'pull_request' }}
           context: .
           file: apps/web/Dockerfile
-          tags: ghcr.io/${{ github.repository }}/catalog.api:build-${{ matrix.builder.platform }}
+          tags: ghcr.io/${{ github.repository }}/catalog.api:build-${{ env.PLATFORM_PAIR }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           # cache-from: type=gha,scope=${{ needs.prepare-build.outputs.repository-lowercase }}-${{ env.PLATFORM_PAIR }}
