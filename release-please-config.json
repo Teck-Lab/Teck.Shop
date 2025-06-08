@@ -3,6 +3,7 @@
     "tag-separator": "@",
     "separate-pull-requests": false,
     "include-v-in-tag": true,
+    "include-v-in-tag": true,
     "changelog-sections": [
         {
             "type": "feat",
