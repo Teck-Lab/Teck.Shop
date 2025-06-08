@@ -112,11 +112,11 @@ jobs:
           context: .
           file: src/services/catalog/Catalog.Api/Dockerfile
           # Use PLATFORM_PAIR env var for valid Docker tag
-          tags: ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:build-${{ env.PLATFORM_PAIR }}
+          tags: ${{ needs.prepare-build.outputs.repository-lowercase }}.api:build-${{ env.PLATFORM_PAIR }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
-          cache-from: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache
-          cache-to: type=registry,ref=ghcr.io/${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache,mode=max
+          cache-from: type=registry,ref=${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache
+          cache-to: type=registry,ref=${{ needs.prepare-build.outputs.repository-lowercase }}.api:dockercache,mode=max
           outputs: type=image,name=${{ needs.prepare-build.outputs.repository-lowercase }},push-by-digest=true,name-canonical=true,push=true
       - name: Export digest
         run: |
