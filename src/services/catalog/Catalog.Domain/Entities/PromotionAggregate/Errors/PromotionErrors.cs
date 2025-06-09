@@ -34,5 +34,5 @@ public static class PromotionErrors
         /// </summary>
                 public static Error NoProducts => Error.Validation(
                     code: "Promotion.NoProducts",
-                    description: "Promotion must have at least one products.");
+                    description: "Promotion must have at least one product.");
 }
