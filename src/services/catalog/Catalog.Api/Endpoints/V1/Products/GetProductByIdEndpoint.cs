@@ -1,3 +1,4 @@
+using Catalog.Application.Features.Products.GetProductById.V1;
 using Catalog.Application.Features.Products.Response;
 using ErrorOr;
 using FastEndpoints;
@@ -5,7 +6,7 @@ using Keycloak.AuthServices.Authorization;
 using Mediator;
 using Teck.Shop.SharedKernel.Infrastructure.Endpoints;
 
-namespace Catalog.Application.Features.Products.GetProductById.V1
+namespace Catalog.Api.Endpoints.V1.Products
 {
     /// <summary>
     /// The get product by id endpoint.
@@ -16,13 +17,10 @@ namespace Catalog.Application.Features.Products.GetProductById.V1
     /// <param name="mediatr">The mediatr.</param>
     public class GetProductByIdEndpoint(ISender mediatr) : Endpoint<GetProductByIdRequest, ProductResponse>
     {
-        /// <summary>
-        /// The mediatr.
-        /// </summary>
         private readonly ISender _mediatr = mediatr;
 
         /// <summary>
-        /// Configure the endpoint.
+        /// Configures the endpoint settings such as route, authorization, version, and validator.
         /// </summary>
         public override void Configure()
         {
@@ -34,11 +32,10 @@ namespace Catalog.Application.Features.Products.GetProductById.V1
         }
 
         /// <summary>
-        /// Handle the request.
+        /// Handles the HTTP GET request to retrieve a product by its ID.
         /// </summary>
-        /// <param name="req"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
+        /// <param name="req">The request containing the product ID.</param>
+        /// <param name="ct">The cancellation token.</param>
         public override async Task HandleAsync(GetProductByIdRequest req, CancellationToken ct)
         {
             GetProductByIdQuery query = new(req.ProductId);

@@ -27,4 +27,9 @@
     <PackageReference Include="Shouldly" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <ExcludeByFile>**/_/src/*;**/Migrations/*;**/obj/*;**/bin/*</ExcludeByFile>
+    <!-- Ensures coverage tools exclude _/src and other non-solution files -->
+  </PropertyGroup>
+
 </Project>
