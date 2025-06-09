@@ -1,6 +1,6 @@
 
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using Teck.Shop.Architectures.UnitTests.Rules;
 using Teck.Shop.SharedKernel.Core.Database;
 using Teck.Shop.SharedKernel.Core.Domain;

@@ -1,5 +1,5 @@
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using Teck.Shop.Architectures.UnitTests.Rules;
 using Teck.Shop.SharedKernel.Core.Domain;
 using Teck.Shop.SharedKernel.Core.Events;

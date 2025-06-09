@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using Teck.Shop.SharedKernel.Core.Events;
 
 namespace Catalog.Arch.UnitTests.Layers

@@ -73,5 +73,52 @@ namespace Catalog.Application.UnitTests.Brands
             var req = new GetPaginatedBrandsRequest { Keyword = "search" };
             Assert.Equal("search", req.Keyword);
         }
+
+        [Fact]
+        public void CreateBrandRequest_Default_Properties()
+        {
+            var req = new CreateBrandRequest();
+            Assert.Equal(string.Empty, req.Name);
+            Assert.Null(req.Description);
+            Assert.Null(req.Website);
+        }
+
+        [Fact]
+        public void DeleteBrandRequest_Default_Properties()
+        {
+            var req = new DeleteBrandRequest();
+            Assert.Equal(Guid.Empty, req.Id);
+        }
+
+        [Fact]
+        public void DeleteBrandsRequest_Default_Properties()
+        {
+            var req = new DeleteBrandsRequest();
+            Assert.Empty(req.Ids);
+        }
+
+        [Fact]
+        public void GetBrandRequest_Default_Properties()
+        {
+            var req = new GetBrandRequest();
+            Assert.Equal(Guid.Empty, req.Id);
+        }
+
+        [Fact]
+        public void GetPaginatedBrandsRequest_Default_Properties()
+        {
+            var req = new GetPaginatedBrandsRequest();
+            Assert.Null(req.Keyword);
+        }
+
+        [Fact]
+        public void UpdateBrandRequest_Default_Properties()
+        {
+            var req = new UpdateBrandRequest();
+            Assert.Equal(Guid.Empty, req.Id);
+            Assert.Null(req.Name);
+            Assert.Null(req.Description);
+            Assert.Null(req.Website);
+        }
     }
 }

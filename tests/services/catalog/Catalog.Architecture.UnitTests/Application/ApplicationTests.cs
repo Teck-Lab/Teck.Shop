@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
 using Catalog.Arch.UnitTests;
 using Teck.Shop.Architectures.UnitTests.Rules;
 using Teck.Shop.SharedKernel.Core.CQRS;

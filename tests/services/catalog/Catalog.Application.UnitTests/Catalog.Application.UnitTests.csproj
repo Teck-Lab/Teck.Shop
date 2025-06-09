@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+  <PackageReference Include="FastEndpoints" />
+  <PackageReference Include="FastEndpoints.Testing" />
   <PackageReference Include="Shouldly" />
     <PackageReference Include="System.Net.Http" />
     <PackageReference Include="System.Text.RegularExpressions" />
@@ -25,7 +27,7 @@
     <PackageReference Include="AutoFixture.AutoNSubstitute" />
     <PackageReference Include="Soenneker.Utils.AutoBogus" />
     <PackageReference Include="Soenneker.Utils.AutoBogus.NSubstitute" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

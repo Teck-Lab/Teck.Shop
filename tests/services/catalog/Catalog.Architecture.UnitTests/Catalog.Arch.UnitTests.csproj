@@ -13,7 +13,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -25,7 +25,7 @@
     <PackageReference Include="Bogus" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="TngTech.ArchUnitNET" />
-    <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

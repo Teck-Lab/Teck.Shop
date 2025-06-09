@@ -1,6 +1,6 @@
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using Teck.Shop.SharedKernel.Core.CQRS;
 
 namespace Teck.Shop.Architectures.UnitTests.Rules;

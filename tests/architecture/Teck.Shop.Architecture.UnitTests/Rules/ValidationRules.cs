@@ -1,6 +1,6 @@
 using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using FluentValidation;
 
 namespace Teck.Shop.Architectures.UnitTests.Rules;

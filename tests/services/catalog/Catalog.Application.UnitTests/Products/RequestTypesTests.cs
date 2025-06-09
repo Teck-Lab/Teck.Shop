@@ -37,5 +37,25 @@ namespace Catalog.Application.UnitTests.Products
             var req = new GetProductByIdRequest { ProductId = id };
             Assert.Equal(id, req.ProductId);
         }
+
+        [Fact]
+        public void CreateProductRequest_Default_Properties()
+        {
+            var req = new CreateProductRequest();
+            Assert.Equal(string.Empty, req.Name);
+            Assert.Null(req.Description);
+            Assert.Null(req.ProductSku);
+            Assert.Null(req.GTIN);
+            Assert.False(req.IsActive);
+            Assert.Null(req.BrandId);
+            Assert.Empty(req.CategoryIds);
+        }
+
+        [Fact]
+        public void GetProductByIdRequest_Default_Properties()
+        {
+            var req = new GetProductByIdRequest();
+            Assert.Equal(Guid.Empty, req.ProductId);
+        }
     }
 }
