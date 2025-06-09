@@ -35,6 +35,6 @@ public class PromotionErrorsTests
     {
         var err = PromotionErrors.NoProducts;
         err.Code.ShouldBe("Promotion.NoProducts");
-        err.Description.ShouldContain("products");
+        err.Description.ShouldBe("Promotion must have at least one product.");
     }
 }
