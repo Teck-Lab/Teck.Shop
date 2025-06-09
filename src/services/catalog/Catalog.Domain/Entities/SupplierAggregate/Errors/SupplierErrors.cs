@@ -20,7 +20,7 @@ public static class SupplierErrors
         /// </summary>
                 public static Error InvalidWebsite => Error.Validation(
                     code: "Supplier.InvalidWebsite",
-                    description: "Supplier website must be a valid absolute URL.");
+                    description: "Supplier website must be a valid URL.");
 
             /// <summary>
             /// Gets the error indicating that the supplier website cannot be empty.
@@ -28,4 +28,11 @@ public static class SupplierErrors
             public static Error EmptyWebsite => Error.Validation(
                 code: "Supplier.EmptyWebsite",
                 description: "Supplier website cannot be empty.");
+
+            /// <summary>
+    /// Gets the error indicating that the supplier description cannot be empty.
+    /// </summary>
+    public static Error EmptyDescription => Error.Validation(
+        code: "Supplier.EmptyDescription",
+        description: "Supplier description cannot be empty.");
 }

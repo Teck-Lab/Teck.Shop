@@ -103,4 +103,75 @@ public class ProductPriceTests
         result.IsError.ShouldBeTrue();
         result.FirstError.Description.ShouldContain("ProductPriceTypeId");
     }
+
+    [Fact]
+    public void Create_Should_ReturnMultipleErrors_When_MultipleFieldsInvalid()
+    {
+        var result = ProductPrice.Create(Guid.Empty, -1, null, Guid.Empty);
+        result.IsError.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThan(1);
+    }
+
+    [Fact]
+    public void Update_Should_Succeed_When_AllFieldsNull()
+    {
+        var salePrice = 10m;
+        var currencyCode = "USD";
+        var product = _fixture.Create<Product>();
+        var priceType = _fixture.Create<ProductPriceType>();
+        var createResult = ProductPrice.Create(product.Id, salePrice, currencyCode, priceType.Id);
+        var price = createResult.Value;
+        var originalSalePrice = price.SalePrice;
+        var originalCurrency = price.CurrencyCode;
+        var updateResult = price.Update(null, null);
+        updateResult.IsError.ShouldBeFalse();
+        price.SalePrice.ShouldBe(originalSalePrice);
+        price.CurrencyCode.ShouldBe(originalCurrency);
+    }
+
+    [Fact]
+    public void Update_Should_ReturnError_When_SalePriceIsNegative()
+    {
+        var salePrice = 10m;
+        var currencyCode = "USD";
+        var product = _fixture.Create<Product>();
+        var priceType = _fixture.Create<ProductPriceType>();
+        var createResult = ProductPrice.Create(product.Id, salePrice, currencyCode, priceType.Id);
+        var price = createResult.Value;
+        var updateResult = price.Update(-1, null);
+        updateResult.IsError.ShouldBeTrue();
+        updateResult.FirstError.Description.ShouldContain("negative");
+    }
+
+    [Fact]
+    public void Update_Should_NotChange_When_ValuesAreSame()
+    {
+        var salePrice = 10m;
+        var currencyCode = "USD";
+        var product = _fixture.Create<Product>();
+        var priceType = _fixture.Create<ProductPriceType>();
+        var createResult = ProductPrice.Create(product.Id, salePrice, currencyCode, priceType.Id);
+        var price = createResult.Value;
+        var updateResult = price.Update(salePrice, currencyCode);
+        updateResult.IsError.ShouldBeFalse();
+        price.SalePrice.ShouldBe(salePrice);
+        price.CurrencyCode.ShouldBe(currencyCode);
+    }
+
+    [Fact]
+    public void Update_Should_Change_SalePrice_And_CurrencyCode()
+    {
+        var salePrice = 10m;
+        var currencyCode = "USD";
+        var product = _fixture.Create<Product>();
+        var priceType = _fixture.Create<ProductPriceType>();
+        var createResult = ProductPrice.Create(product.Id, salePrice, currencyCode, priceType.Id);
+        var price = createResult.Value;
+        var newSalePrice = 20m;
+        var newCurrency = "EUR";
+        var updateResult = price.Update(newSalePrice, newCurrency);
+        updateResult.IsError.ShouldBeFalse();
+        price.SalePrice.ShouldBe(newSalePrice);
+        price.CurrencyCode.ShouldBe(newCurrency);
+    }
 }

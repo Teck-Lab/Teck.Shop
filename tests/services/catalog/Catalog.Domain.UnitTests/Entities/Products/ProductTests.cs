@@ -103,6 +103,24 @@ public class ProductTests
         result.FirstError.Description.ShouldContain("description");
     }
 
+    [Fact]
+    public void Create_Should_ReturnError_When_DescriptionIsWhitespace()
+    {
+        // Arrange
+        var name = _fixture.Create<string>();
+        var sku = _fixture.Create<string>();
+        var gtin = _fixture.Create<string>();
+        var categories = _fixture.CreateMany<Category>().ToList();
+        var brand = _fixture.Create<Brand>();
+
+        // Act
+        var result = Product.Create(name, "   ", sku, gtin, categories, true, brand);
+
+        // Assert
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldContain("description");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -124,6 +142,24 @@ public class ProductTests
         result.FirstError.Description.ShouldContain("SKU");
     }
 
+    [Fact]
+    public void Create_Should_ReturnError_When_SKUIsWhitespace()
+    {
+        // Arrange
+        var name = _fixture.Create<string>();
+        var description = _fixture.Create<string>();
+        var gtin = _fixture.Create<string>();
+        var categories = _fixture.CreateMany<Category>().ToList();
+        var brand = _fixture.Create<Brand>();
+
+        // Act
+        var result = Product.Create(name, description, "   ", gtin, categories, true, brand);
+
+        // Assert
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldContain("SKU");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -139,6 +175,24 @@ public class ProductTests
 
         // Act
         var result = Product.Create(name, description, sku, invalidGtin, categories, true, brand);
+
+        // Assert
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldContain("GTIN");
+    }
+
+    [Fact]
+    public void Create_Should_ReturnError_When_GTINIsWhitespace()
+    {
+        // Arrange
+        var name = _fixture.Create<string>();
+        var description = _fixture.Create<string>();
+        var sku = _fixture.Create<string>();
+        var categories = _fixture.CreateMany<Category>().ToList();
+        var brand = _fixture.Create<Brand>();
+
+        // Act
+        var result = Product.Create(name, description, sku, "   ", categories, true, brand);
 
         // Assert
         result.IsError.ShouldBeTrue();
@@ -229,6 +283,91 @@ public class ProductTests
         product.Slug.ShouldBe(newName.ToLower().Replace(" ", "-"));
     }
 
+    [Fact]
+    public void Update_Should_ReturnError_When_NameIsEmpty()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+
+        // Act
+        var updateResult = product.Update("");
+
+        // Assert
+        updateResult.IsError.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Update_Should_DoNothing_When_NameIsNull()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+        var originalName = product.Name;
+        var originalSlug = product.Slug;
+
+        // Act
+        var updateResult = product.Update(null);
+
+        // Assert
+        updateResult.IsError.ShouldBeFalse();
+        product.Name.ShouldBe(originalName);
+        product.Slug.ShouldBe(originalSlug);
+    }
+
+    [Fact]
+    public void Update_Should_DoNothing_When_NameIsSame()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            "TestName",
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+        var originalSlug = product.Slug;
+
+        // Act
+        var updateResult = product.Update("TestName");
+
+        // Assert
+        updateResult.IsError.ShouldBeFalse();
+        product.Slug.ShouldBe(originalSlug);
+    }
+
+    [Theory]
+    [InlineData("  My Product!  ", "my-product")]
+    [InlineData("Product--Name", "product-name")]
+    [InlineData("Product___Name", "product-name")]
+    [InlineData("Product", "product")]
+    [InlineData("  ", "")]
+    public void GetProductSlug_Should_ProduceExpectedSlug(string input, string expected)
+    {
+        var method = typeof(Product).GetMethod("GetProductSlug", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var slug = (string)method.Invoke(null, new object[] { input });
+        slug.ShouldBe(expected);
+    }
+
     // Uncomment and adapt these if your Product aggregate supports AddCategory/RemoveCategory with ErrorOr
     /*
     [Fact]
@@ -279,4 +418,117 @@ public class ProductTests
         product.Categories.ShouldNotContain(category);
     }
     */
+
+    [Fact]
+    public void Create_Should_ReturnMultipleErrors_When_MultipleFieldsInvalid()
+    {
+        // Arrange
+        string name = null;
+        string description = null;
+        string sku = null;
+        string gtin = null;
+        List<Category> categories = null;
+        Brand brand = null;
+
+        // Act
+        var result = Product.Create(name, description, sku, gtin, categories, true, brand);
+
+        // Assert
+        result.IsError.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThan(1);
+    }
+
+    [Fact]
+    public void Create_Should_ReturnError_When_CategoriesIsNull()
+    {
+        // Arrange
+        var name = _fixture.Create<string>();
+        var description = _fixture.Create<string>();
+        var sku = _fixture.Create<string>();
+        var gtin = _fixture.Create<string>();
+        List<Category> categories = null;
+        var brand = _fixture.Create<Brand>();
+
+        // Act
+        var result = Product.Create(name, description, sku, gtin, categories, true, brand);
+
+        // Assert
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldContain("categories");
+    }
+
+    [Fact]
+    public void Update_Should_Succeed_When_NameIsNull()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+        var originalName = product.Name;
+        var originalSlug = product.Slug;
+
+        // Act
+        var updateResult = product.Update(null);
+
+        // Assert
+        updateResult.IsError.ShouldBeFalse();
+        product.Name.ShouldBe(originalName);
+        product.Slug.ShouldBe(originalSlug);
+    }
+
+    [Fact]
+    public void Update_Should_ReturnError_When_NameIsWhitespace()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+
+        // Act
+        var updateResult = product.Update("   ");
+
+        // Assert
+        updateResult.IsError.ShouldBeTrue();
+        updateResult.Errors.ShouldContain(e => e.Description.Contains("cannot be empty"));
+    }
+
+    [Fact]
+    public void Update_Should_ReturnMultipleErrors_When_NameIsNullOrWhitespace()
+    {
+        // Arrange
+        var createResult = Product.Create(
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.Create<string>(),
+            _fixture.CreateMany<Category>().ToList(),
+            true,
+            _fixture.Create<Brand>()
+        );
+        var product = createResult.Value;
+
+        // Act
+        var updateResult1 = product.Update(null);
+        var updateResult2 = product.Update("");
+        var updateResult3 = product.Update("   ");
+
+        // Assert
+        updateResult1.IsError.ShouldBeFalse();
+        updateResult2.IsError.ShouldBeTrue();
+        updateResult3.IsError.ShouldBeTrue();
+    }
 }
