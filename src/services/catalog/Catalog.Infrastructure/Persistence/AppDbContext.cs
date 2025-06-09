@@ -40,31 +40,31 @@ namespace Catalog.Infrastructure.Persistence
         /// <summary>
         /// Gets or sets the products.
         /// </summary>
-        public required DbSet<Product> Products { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         /// <summary>
         /// Gets or sets the categories.
         /// </summary>
-        public required DbSet<Category> Categories { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         /// <summary>
         /// Gets or sets the product prices.
         /// </summary>
-        public required DbSet<ProductPrice> ProductPrices { get; set; }
+        public DbSet<ProductPrice> ProductPrices { get; set; }
 
         /// <summary>
         /// Gets or sets the product price types.
         /// </summary>
-        public required DbSet<ProductPriceType> ProductPriceTypes { get; set; }
+        public DbSet<ProductPriceType> ProductPriceTypes { get; set; }
 
         /// <summary>
         /// Gets or sets the promotions.
         /// </summary>
-        public required DbSet<Promotion> Promotions { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
 
         /// <summary>
         /// Gets or sets the suppliers.
         /// </summary>
-        public required DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
     }
 }

@@ -185,5 +185,9 @@
     <PackageVersion Include="CorrelationId" Version="3.0.1" />
     <PackageVersion Include="Ardalis.GuardClauses" Version="5.0.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="Testcontainers" Version="4.5.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.5.0" />
+    <PackageVersion Include="Testcontainers.Redis" Version="4.5.0" />
+    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.5.0" />
   </ItemGroup>
 </Project>
