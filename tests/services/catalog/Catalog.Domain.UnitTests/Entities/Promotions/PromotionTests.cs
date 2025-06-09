@@ -67,7 +67,7 @@ public class PromotionTests
         List<Product> products = null;
         var result = Promotion.Create(name, null, start, end, products);
         result.IsError.ShouldBeTrue();
-        result.FirstError.Description.ShouldContain("products");
+        result.FirstError.Description.ShouldBe("Promotion must have at least one product.");
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class PromotionTests
         var products = new List<Product>();
         var result = Promotion.Create(name, null, start, end, products);
         result.IsError.ShouldBeTrue();
-        result.FirstError.Description.ShouldContain("products");
+        result.FirstError.Description.ShouldBe("Promotion must have at least one product.");
     }
 
     [Fact]
