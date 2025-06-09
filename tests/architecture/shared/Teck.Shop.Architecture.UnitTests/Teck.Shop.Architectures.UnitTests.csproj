@@ -1,17 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
@@ -34,11 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\buildingblocks\Teck.Shop.SharedKernel.Core\Teck.Shop.SharedKernel.Core.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\catalog\Catalog.Application\Catalog.Application.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\catalog\Catalog.Domain\Catalog.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\src\services\catalog\Catalog.Api\Catalog.Api.csproj" />
-    <ProjectReference Include="..\..\..\architecture\Teck.Shop.Architecture.UnitTests\Teck.Shop.Architectures.UnitTests.csproj" />
+    <ProjectReference Include="..\..\..\..\src\buildingblocks\Teck.Shop.SharedKernel.Persistence\Teck.Shop.SharedKernel.Persistence.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
