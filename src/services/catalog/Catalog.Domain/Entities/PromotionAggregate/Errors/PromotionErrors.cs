@@ -32,7 +32,7 @@ public static class PromotionErrors
         /// <summary>
         /// Gets the error indicating that a promotion must have at least one product.
         /// </summary>
-        public static Error NoProducts => Error.Validation(
-            code: "Promotion.NoProducts",
-            description: "Promotion must have at least one product.");
+                public static Error NoProducts => Error.Validation(
+                    code: "Promotion.NoProducts",
+                    description: "Promotion must have at least one product.");
 }
