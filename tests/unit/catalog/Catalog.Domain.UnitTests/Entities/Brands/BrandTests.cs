@@ -237,26 +237,7 @@ public class BrandTests
         updateResult.IsError.ShouldBeFalse();
         brand.Name.ShouldBe(originalName);
         brand.Description.ShouldBe(originalDescription);
-        brand.Website.ShouldBeNull();
-    }
-
-    [Fact]
-    public void Update_Should_SetWebsiteToNull_When_WebsiteIsNull()
-    {
-        // Arrange
-        var createResult = Brand.Create(
-            _fixture.Create<string>(),
-            _fixture.Create<string>(),
-            "https://example.com"
-        );
-        var brand = createResult.Value;
-
-        // Act
-        var updateResult = brand.Update(null, null, null);
-
-        // Assert
-        updateResult.IsError.ShouldBeFalse();
-        brand.Website.ShouldBeNull();
+        brand.Website.ShouldBe(originalWebsite);
     }
 
     [Fact]
@@ -387,12 +368,12 @@ public class BrandTests
     }
 
     [Fact]
-    public void Update_Should_SetWebsiteToNull_When_SetToNull()
+    public void Update_Should_ReturnError_When_WebsiteIsEmptyString()
     {
         var createResult = Brand.Create(_fixture.Create<string>(), _fixture.Create<string>(), "https://example.com");
         var brand = createResult.Value;
-        var updateResult = brand.Update(null, null, null);
-        updateResult.IsError.ShouldBeFalse();
-        brand.Website.ShouldBeNull();
+        var updateResult = brand.Update(null, null, "");
+        updateResult.IsError.ShouldBeTrue();
+        updateResult.Errors.ShouldContain(e => e.Description.Contains("website"));
     }
 }

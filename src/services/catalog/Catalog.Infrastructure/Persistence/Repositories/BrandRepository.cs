@@ -38,8 +38,8 @@ namespace Catalog.Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrEmpty(keyword))
             {
-                keyword = keyword.ToLowerInvariant();
-                queryable = queryable.Where(brand => brand.Name.Contains(keyword, StringComparison.InvariantCultureIgnoreCase));
+                var lowered = keyword.ToLowerInvariant();
+                queryable = queryable.Where(brand => brand.Name.ToLower().Contains(lowered));
             }
 
             queryable = queryable.OrderBy(brand => brand.CreatedOn);

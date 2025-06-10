@@ -82,11 +82,7 @@ namespace Catalog.Domain.Entities.BrandAggregate
                     Website = website;
                 }
             }
-            else
-            {
-                // Explicitly set to null if website is passed as null
-                Website = null;
-            }
+            // If website is null, do not change the property (preserve existing value)
 
             if (errors.Any())
             {

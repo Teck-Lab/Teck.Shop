@@ -1,3 +1,4 @@
+#nullable enable
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using Catalog.Domain.Entities.BrandAggregate;
@@ -161,10 +162,10 @@ public class ProductTests
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_Should_ReturnError_When_GTINIsInvalid(string invalidGtin)
+    [InlineData(null)]
+    public void Create_Should_Allow_Optional_GTIN(string? optionalGtin)
     {
         // Arrange
         var name = _fixture.Create<string>();
@@ -174,29 +175,11 @@ public class ProductTests
         var brand = _fixture.Create<Brand>();
 
         // Act
-        var result = Product.Create(name, description, sku, invalidGtin, categories, true, brand);
+        var result = Product.Create(name, description, sku, optionalGtin, categories, true, brand);
 
         // Assert
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Description.ShouldContain("GTIN");
-    }
-
-    [Fact]
-    public void Create_Should_ReturnError_When_GTINIsWhitespace()
-    {
-        // Arrange
-        var name = _fixture.Create<string>();
-        var description = _fixture.Create<string>();
-        var sku = _fixture.Create<string>();
-        var categories = _fixture.CreateMany<Category>().ToList();
-        var brand = _fixture.Create<Brand>();
-
-        // Act
-        var result = Product.Create(name, description, sku, "   ", categories, true, brand);
-
-        // Assert
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Description.ShouldContain("GTIN");
+        result.IsError.ShouldBeFalse();
+        result.Value.GTIN.ShouldBe(optionalGtin);
     }
 
     [Fact]
