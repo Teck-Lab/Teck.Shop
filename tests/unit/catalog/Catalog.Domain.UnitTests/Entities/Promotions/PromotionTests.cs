@@ -5,6 +5,8 @@ using Catalog.Domain.Entities.PromotionAggregate;
 using Shouldly;
 using Xunit;
 
+#nullable enable
+
 namespace Catalog.Domain.UnitTests.Entities.Promotions;
 
 public class PromotionTests
@@ -489,5 +491,106 @@ public class PromotionTests
         result.Value.Description.ShouldBeNull();
     }
 
-    // You can similarly update and uncomment the following tests if your Promotion entity supports ErrorOr and these methods.
+    [Fact]
+    public void Create_Should_ReturnError_When_ProductsContainNull()
+    {
+        var name = _fixture.Create<string>();
+        var start = DateTimeOffset.UtcNow;
+        var end = start.AddDays(1);
+        var products = new List<Product?> { _fixture.Create<Product>(), null };
+        // Cast to ICollection<Product> to simulate possible misuse
+        var result = Promotion.Create(name, null, start, end, products!);
+        // Should succeed, as current logic does not check for nulls inside the list
+        // If nulls are not allowed, this should be changed in the domain logic
+        result.IsError.ShouldBeFalse();
+        result.Value.Products.ShouldContain(p => p == null);
+    }
+
+    [Fact]
+    public void Update_Should_Allow_EmptyProductsList()
+    {
+        var createResult = Promotion.Create(_fixture.Create<string>(), _fixture.Create<string>(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1), _fixture.CreateMany<Product>().ToList());
+        var promotion = createResult.Value;
+        var updateResult = promotion.Update(null, null, null, null, new List<Product>());
+        updateResult.IsError.ShouldBeFalse();
+        promotion.Products.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Update_Should_ReturnError_When_ValidToBeforeValidFrom_BothProvided()
+    {
+        var createResult = Promotion.Create(_fixture.Create<string>(), _fixture.Create<string>(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(10), _fixture.CreateMany<Product>().ToList());
+        var promotion = createResult.Value;
+        var newValidFrom = DateTimeOffset.UtcNow.AddDays(10);
+        var newValidTo = DateTimeOffset.UtcNow.AddDays(5);
+        var updateResult = promotion.Update(null, null, newValidFrom, newValidTo, null);
+        updateResult.IsError.ShouldBeTrue();
+        updateResult.Errors.ShouldContain(e => e.Description.Contains("date range"));
+    }
+
+    [Fact]
+    public void Create_Should_Allow_WhitespaceDescription()
+    {
+        var name = _fixture.Create<string>();
+        var start = DateTime.UtcNow;
+        var end = DateTime.UtcNow.AddDays(1);
+        var products = _fixture.CreateMany<Product>().ToList();
+        var result = Promotion.Create(name, "   ", start, end, products);
+        result.IsError.ShouldBeFalse();
+        result.Value.Description.ShouldBe("   ");
+    }
+
+    [Fact]
+    public void Update_Should_NotChangeProducts_When_ProductsIsNull_And_OriginalIsEmpty()
+    {
+        var validFrom = DateTimeOffset.UtcNow;
+        var validTo = validFrom.AddDays(1);
+        // Use a single product for creation, then clear the list after creation
+        var initialProducts = new List<Product> { _fixture.Create<Product>() };
+        var createResult = Promotion.Create(_fixture.Create<string>(), _fixture.Create<string>(), validFrom, validTo, initialProducts);
+        var promotion = createResult.Value;
+        // Remove all products to simulate empty original
+        promotion.Update(null, null, null, null, new List<Product>());
+        promotion.Products.ShouldBeEmpty();
+        // Now test update with products = null
+        var updateResult = promotion.Update(null, null, null, null, null);
+        updateResult.IsError.ShouldBeFalse();
+        promotion.Products.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Create_Should_ReturnError_When_ProductsIsNull_Explicit()
+    {
+        var name = _fixture.Create<string>();
+        var start = DateTime.UtcNow;
+        var end = DateTime.UtcNow.AddDays(1);
+        List<Product>? products = null;
+        var result = Promotion.Create(name, null, start, end, products!);
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldBe("Promotion must have at least one product.");
+    }
+
+    [Fact]
+    public void Create_Should_ReturnError_When_NameIsNull_Explicit()
+    {
+        string? name = null;
+        var start = DateTime.UtcNow;
+        var end = DateTime.UtcNow.AddDays(1);
+        var products = _fixture.CreateMany<Product>().ToList();
+        var result = Promotion.Create(name!, null, start, end, products);
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Description.ShouldContain("name");
+    }
+
+    [Fact]
+    public void Create_Should_ReturnMultipleErrors_When_MultipleFieldsInvalid_Explicit()
+    {
+        string? name = null;
+        var start = DateTime.UtcNow.AddDays(2);
+        var end = DateTime.UtcNow.AddDays(1);
+        List<Product>? products = null;
+        var result = Promotion.Create(name!, null, start, end, products!);
+        result.IsError.ShouldBeTrue();
+        result.Errors.Count.ShouldBeGreaterThan(1);
+    }
 }

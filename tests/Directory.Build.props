@@ -20,7 +20,7 @@
 		<CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
 	</PropertyGroup>
 	<PropertyGroup>
- 		<ExcludeByFile>**\_\src\*;**/Migrations/*;**/obj/*;**/bin/*</ExcludeByFile>
+ 		<ExcludeByFile>**/obj/**;**/bin/**;**/Extensions.cs;**/Program.cs</ExcludeByFile>
 	</PropertyGroup>
 	<PropertyGroup>
 		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
