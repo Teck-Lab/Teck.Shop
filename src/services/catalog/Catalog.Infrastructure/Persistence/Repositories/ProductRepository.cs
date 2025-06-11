@@ -34,8 +34,8 @@ namespace Catalog.Infrastructure.Persistence.Repositories
             IQueryable<Product> queryable = _context.Products.AsQueryable();
             if (!string.IsNullOrEmpty(keyword))
             {
-                keyword = keyword.ToLowerInvariant();
-                queryable = queryable.Where(product => product.Name.Contains(keyword, StringComparison.InvariantCultureIgnoreCase));
+                var lowered = keyword.ToLowerInvariant();
+                queryable = queryable.Where(product => product.Name.ToLower().Contains(lowered));
             }
 
             queryable = queryable.OrderBy(product => product.CreatedOn);

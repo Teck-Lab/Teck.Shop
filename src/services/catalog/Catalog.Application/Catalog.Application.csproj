@@ -27,7 +27,7 @@
     <InternalsVisibleTo Include="Catalog.Api"/>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>
-				Catalog.Application.UnitTests
+				Catalog.UnitTests
 			</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>

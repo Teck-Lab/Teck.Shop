@@ -37,7 +37,7 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore
             }
 
             int totalItems = await collection.CountAsync(cancellationToken: cancellationToken);
-            List<T> data = [.. collection.Skip(skipSize).Take(resultsPerPage)];
+            List<T> data = await collection.Skip(skipSize).Take(resultsPerPage).ToListAsync(cancellationToken);
             return new PagedList<T>(data, totalItems, page, resultsPerPage);
         }
     }

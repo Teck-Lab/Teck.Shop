@@ -13,7 +13,7 @@ namespace Catalog.Domain.Entities.CategoryAggregate.Errors
         /// </summary>
         public static Error NotFound => Error.NotFound(
             code: "Category.NotFound",
-            description: "No matching category could be found");
+            description: "Category not found");
         /// <summary>
         /// Gets category empty name validation error.
         /// </summary>

@@ -55,9 +55,16 @@ namespace Catalog.Domain.Entities.CategoryAggregate
                 }
             }
 
-            if (Description?.Equals(description, StringComparison.Ordinal) is not true)
+            if (description is not null)
             {
-                Description = description;
+                if (string.IsNullOrWhiteSpace(description))
+                {
+                    errors.Add(CategoryErrors.EmptyDescription);
+                }
+                else if (!string.Equals(Description, description, StringComparison.Ordinal))
+                {
+                    Description = description;
+                }
             }
 
             if (errors.Any())

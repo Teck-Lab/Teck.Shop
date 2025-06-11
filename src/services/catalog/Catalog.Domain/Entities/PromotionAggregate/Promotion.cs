@@ -1,4 +1,3 @@
-
 using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductAggregate;
 using Catalog.Domain.Entities.PromotionAggregate.Errors;
@@ -72,7 +71,7 @@ namespace Catalog.Domain.Entities.PromotionAggregate
                 }
             }
 
-            if (Description?.Equals(description, StringComparison.Ordinal) is not true)
+            if (description is not null && !string.Equals(Description, description, StringComparison.Ordinal))
             {
                 Description = description;
             }

@@ -44,15 +44,22 @@ namespace Catalog.Domain.Entities.SupplierAggregate
                 {
                     errors.Add(SupplierErrors.EmptyName);
                 }
-                else if (Name?.Equals(name, StringComparison.Ordinal) is not true)
+                else if (!string.Equals(Name, name, StringComparison.Ordinal))
                 {
                     Name = name;
                 }
             }
 
-            if (Description?.Equals(description, StringComparison.Ordinal) is not true)
+            if (description is not null)
             {
-                Description = description;
+                if (string.IsNullOrWhiteSpace(description))
+                {
+                    errors.Add(SupplierErrors.EmptyDescription);
+                }
+                else if (!string.Equals(Description, description, StringComparison.Ordinal))
+                {
+                    Description = description;
+                }
             }
 
             if (website is not null)
@@ -66,7 +73,7 @@ namespace Catalog.Domain.Entities.SupplierAggregate
                 {
                     errors.Add(SupplierErrors.InvalidWebsite);
                 }
-                else if (Website?.Equals(website, StringComparison.Ordinal) is not true)
+                else if (!string.Equals(Website, website, StringComparison.Ordinal))
                 {
                     Website = website;
                 }
@@ -95,6 +102,11 @@ namespace Catalog.Domain.Entities.SupplierAggregate
             if (string.IsNullOrWhiteSpace(name))
             {
                 errors.Add(SupplierErrors.EmptyName);
+            }
+
+            if (description is not null && string.IsNullOrWhiteSpace(description))
+            {
+                errors.Add(SupplierErrors.EmptyDescription);
             }
 
             if (string.IsNullOrWhiteSpace(website))
