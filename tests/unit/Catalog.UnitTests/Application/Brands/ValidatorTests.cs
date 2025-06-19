@@ -12,8 +12,8 @@ using FastEndpoints.Testing;
 using Catalog.Application.Contracts.Repositories;
 using Catalog.Application.Features.Brands.CreateBrand.V1;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 
 namespace Catalog.UnitTests.Application.Brands
 {
@@ -24,7 +24,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new DeleteBrandValidator();
             var result = validator.Validate(new DeleteBrandRequest { Id = Guid.Empty });
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new DeleteBrandsValidator();
             var result = validator.Validate(new DeleteBrandRequest { Id = Guid.Empty });
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new GetBrandValidator();
             var result = validator.Validate(new GetBrandRequest { Id = Guid.Empty });
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = new GetPaginatedBrandsValidator();
             var req = new GetPaginatedBrandsRequest { Page = 0, Size = 0 };
             var result = validator.Validate(req);
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = new UpdateBrandValidator();
             var req = new UpdateBrandRequest { Id = Guid.Empty, Name = "" };
             var result = validator.Validate(req);
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -68,7 +68,7 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = Factory.CreateValidator<CreateBrandValidator>(s => s.AddSingleton(repo));
             var req = new CreateBrandRequest { Name = "" };
             var result = await validator.ValidateAsync(req, TestContext.Current.CancellationToken);
-            result.IsValid.Should().BeFalse();
+            result.IsValid.ShouldBe(false);
         }
 
         [Fact]
@@ -83,8 +83,8 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = Factory.CreateValidator<CreateBrandValidator>(s => s.AddSingleton(repo));
             var req = new CreateBrandRequest { Name = "DUPLICATE" };
             var result = await validator.ValidateAsync(req, TestContext.Current.CancellationToken);
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.ErrorMessage.Contains("already Exists"));
+            result.IsValid.ShouldBeFalse();
+            result.Errors.ShouldContain(e => e.ErrorMessage.Contains("already Exists"));
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new DeleteBrandValidator();
             var result = validator.Validate(new DeleteBrandRequest { Id = Guid.NewGuid() });
-            Assert.True(result.IsValid);
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new DeleteBrandsValidator();
             var result = validator.Validate(new DeleteBrandRequest { Id = Guid.NewGuid() });
-            Assert.True(result.IsValid);
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace Catalog.UnitTests.Application.Brands
         {
             var validator = new GetBrandValidator();
             var result = validator.Validate(new GetBrandRequest { Id = Guid.NewGuid() });
-            Assert.True(result.IsValid);
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = new GetPaginatedBrandsValidator();
             var req = new GetPaginatedBrandsRequest { Page = 1, Size = 10 };
             var result = validator.Validate(req);
-            Assert.True(result.IsValid);
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = new UpdateBrandValidator();
             var req = new UpdateBrandRequest { Id = Guid.NewGuid(), Name = "Valid Brand" };
             var result = validator.Validate(req);
-            Assert.True(result.IsValid);
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -135,8 +135,8 @@ namespace Catalog.UnitTests.Application.Brands
             var validator = new UpdateBrandValidator();
             var req = new UpdateBrandRequest { Id = Guid.NewGuid(), Name = new string('a', 101) };
             var result = validator.Validate(req);
-            Assert.False(result.IsValid);
-            Assert.Contains(result.Errors, e => e.PropertyName == "Name");
+            result.IsValid.ShouldBeFalse();
+            result.Errors.ShouldContain(e => e.PropertyName == "Name");
         }
     }
 }

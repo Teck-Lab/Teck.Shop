@@ -5,9 +5,9 @@ using Catalog.Application.Features.Products.CreateProduct.V1;
 using Catalog.Application.Features.Products.GetProductById.V1;
 using FastEndpoints;
 using FastEndpoints.Testing;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
+using Shouldly;
 using Xunit;
 
 namespace Catalog.UnitTests.Application.Products
@@ -21,7 +21,7 @@ namespace Catalog.UnitTests.Application.Products
             var validator = Factory.CreateValidator<CreateProductValidator>(s => s.AddSingleton(repo));
             var req = new CreateProductRequest { ProductSku = "" };
             var result = await validator.ValidateAsync(req, TestContext.Current.CancellationToken);
-            result.IsValid.Should().BeFalse();
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace Catalog.UnitTests.Application.Products
             var validator = new GetProductByIdValidator();
             var req = new GetProductByIdRequest { ProductId = Guid.Empty };
             var result = validator.Validate(req);
-            Assert.False(result.IsValid);
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace Catalog.UnitTests.Application.Products
             var validator = new GetProductByIdValidator();
             var req = new GetProductByIdRequest { ProductId = Guid.NewGuid() };
             var result = validator.Validate(req);
-            result.IsValid.Should().BeTrue();
+            result.IsValid.ShouldBeTrue();
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace Catalog.UnitTests.Application.Products
             var validator = new GetProductByIdValidator();
             var req = new GetProductByIdRequest { ProductId = default };
             var result = validator.Validate(req);
-            result.IsValid.Should().BeFalse();
+            result.IsValid.ShouldBeFalse();
         }
 
         [Fact]
@@ -63,8 +63,8 @@ namespace Catalog.UnitTests.Application.Products
             var validator = Factory.CreateValidator<CreateProductValidator>(s => s.AddSingleton(repo));
             var req = new CreateProductRequest { ProductSku = "DUPLICATE-SKU" };
             var result = await validator.ValidateAsync(req, TestContext.Current.CancellationToken);
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.ErrorMessage.Contains("already Exists"));
+            result.IsValid.ShouldBeFalse();
+            result.Errors.ShouldContain(e => e.ErrorMessage.Contains("already Exists"));
         }
     }
 }
