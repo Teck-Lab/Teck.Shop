@@ -1,3 +1,4 @@
+using System.Reflection;
 using Catalog.Domain.Entities.BrandAggregate;
 using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductAggregate;
@@ -16,9 +17,17 @@ namespace Catalog.Infrastructure.Persistence
     /// <remarks>
     /// Initializes a new instance of the <see cref="AppDbContext"/> class.
     /// </remarks>
-    /// <param name="options">The options.</param>
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : BaseDbContext(options)
+    public class AppDbContext : BaseDbContext
     {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppDbContext"/> class with the specified options.
+    /// </summary>
+    /// <param name="options">The options to be used by a <see cref="DbContext"/>.</param>
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
         /// <summary>
         /// On model creating.
         /// </summary>
@@ -30,6 +39,7 @@ namespace Catalog.Infrastructure.Persistence
             modelBuilder.AddInboxStateEntity();
             modelBuilder.AddOutboxMessageEntity();
             modelBuilder.AddOutboxStateEntity();
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
         /// <summary>

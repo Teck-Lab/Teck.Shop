@@ -45,7 +45,7 @@ namespace Teck.Shop.SharedKernel.Infrastructure
                 options.ResponseHeader = "X-Correlation-ID";
                 options.IncludeInResponse = true;
                 options.AddToLoggingScope = true;
-                options.UpdateTraceIdentifier = false; // optional but recommended
+                options.UpdateTraceIdentifier = false;
 
                 options.CorrelationIdGenerator = () => Guid.NewGuid().ToString();
             });

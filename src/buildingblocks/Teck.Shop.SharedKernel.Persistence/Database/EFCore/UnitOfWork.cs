@@ -1,7 +1,10 @@
 using System.Data;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Core.Domain;
+using Teck.Shop.SharedKernel.Core.Events;
 using Teck.Shop.SharedKernel.Core.Exceptions;
 
 namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore
@@ -13,19 +16,20 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore
     /// <remarks>
     /// Initializes a new instance of the <see cref="UnitOfWork{TContext}"/> class.
     /// </remarks>
-    /// <param name="context">The context.</param>
-    public class UnitOfWork<TContext>(TContext context) : IUnitOfWork
+    public class UnitOfWork<TContext> : IUnitOfWork
         where TContext : BaseDbContext
     {
-        /// <summary>
-        /// The context.
-        /// </summary>
-        private readonly TContext _context = context;
+        private readonly TContext _context;
+        private IDbContextTransaction? _transaction;
 
         /// <summary>
-        /// The transaction.
+        /// Initializes a new instance of the <see cref="UnitOfWork{TContext}"/> class.
         /// </summary>
-        private IDbContextTransaction? _transaction;
+        /// <param name="context">The database context.</param>
+        public UnitOfWork(TContext context)
+        {
+            _context = context;
+        }
 
         /// <summary>
         /// Begins the transaction asynchronously.
@@ -114,9 +118,14 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns><![CDATA[Task<int>]]></returns>
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "HLQ004:The enumerator returns a reference to the item", Justification = "Add ref when .NET 9 comes out with support for it being async.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "HLQ012:Consider using CollectionsMarshal.AsSpan()", Justification = "Add ref when .NET 9 comes out with support for it being async.")]
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return _context.SaveChangesAsync(cancellationToken);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+
+
+            return result;
         }
 
         /// <summary>

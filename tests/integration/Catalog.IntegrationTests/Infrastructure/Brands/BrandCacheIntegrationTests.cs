@@ -19,6 +19,7 @@ using Catalog.IntegrationTests.Shared;
 using Teck.Shop.SharedKernel.Core.Database;
 using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
 using ZiggyCreatures.Caching.Fusion;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Brands
 {
@@ -33,6 +34,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             await base.InitializeAsync();
             var httpContextAccessor = new HttpContextAccessor();
             _repository = new BrandRepository(DbContext, httpContextAccessor);
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
             _unitOfWork = new UnitOfWork<AppDbContext>(DbContext);
             _cache = new BrandCache(Cache, _repository);
         }

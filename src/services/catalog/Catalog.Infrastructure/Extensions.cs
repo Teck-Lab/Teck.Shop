@@ -16,6 +16,7 @@ using Teck.Shop.SharedKernel.Core.Exceptions;
 using Teck.Shop.SharedKernel.Infrastructure.Auth;
 using Teck.Shop.SharedKernel.Persistence.Database;
 using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore.Dispatchers;
 namespace Catalog.Infrastructure
 {
     /// <summary>
@@ -41,7 +42,6 @@ namespace Catalog.Infrastructure
 
             builder.AddCustomDbContext<AppDbContext>(dbContextAssembly, postgresConnectionString);
 
-            string? rabbitmqConnection = builder.Configuration.GetConnectionString("rabbitmq");
             builder.Services.AddMediator(consumer =>
             {
                 consumer.AddConsumer<BrandCreatedDomainEventConsumer>();
@@ -54,13 +54,14 @@ namespace Catalog.Infrastructure
                     option.UsePostgres();
                     option.UseBusOutbox();
                 });
+                
                 config.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Publish<DomainEvent>(message => message.Exclude = true);
                     cfg.DeployPublishTopology = true;
                     cfg.UseDelayedRedelivery(message => message.Intervals(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(30)));
                     cfg.UseMessageRetry(message => message.Immediate(5));
-                    cfg.Host(rabbitmqConnection);
+                    cfg.Host(rabbitmqConnectionString);
                     cfg.ConfigureEndpoints(context, new KebabCaseEndpointNameFormatter("catalog", false));
                 });
             });
@@ -73,7 +74,7 @@ namespace Catalog.Infrastructure
                     AutomaticRecoveryEnabled = true
                 };
                 return factory.CreateConnectionAsync();
-            },
+            }, timeout: TimeSpan.FromSeconds(5),
                 tags: ["messagebus", "rabbitmq"]);
 
             // Automatically register services.

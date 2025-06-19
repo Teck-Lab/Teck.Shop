@@ -16,10 +16,13 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Xunit;
 using Catalog.IntegrationTests.Shared;
+using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Products
 {
-    public class ProductRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext>
+    public class ProductRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private ProductRepository _repository = null!;
         private BrandRepository _brandRepository = null!;
@@ -45,6 +48,12 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             return ctx;
         }
 
+        protected override IUnitOfWork CreateUnitOfWork(AppDbContext context)
+        {
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
+            return new UnitOfWork<AppDbContext>(context);
+        }
+
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();
@@ -66,7 +75,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             var category = categoryResult.Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
 
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act: create product
             var productResult = Product.Create(
@@ -80,7 +89,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             );
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
 

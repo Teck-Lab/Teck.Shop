@@ -13,10 +13,13 @@ using Catalog.Domain.Entities.ProductAggregate;
 using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductPriceTypeAggregate;
 using Catalog.Domain.Entities.PromotionAggregate;
+using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Suppliers
 {
-    public class SupplierRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext>
+    public class SupplierRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private SupplierRepository _repository = null!;
 
@@ -40,6 +43,12 @@ namespace Catalog.IntegrationTests.Infrastructure.Suppliers
             return ctx;
         }
 
+        protected override IUnitOfWork CreateUnitOfWork(AppDbContext context)
+        {
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
+            return new UnitOfWork<AppDbContext>(context);
+        }
+
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();
@@ -56,7 +65,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Suppliers
 
             // Act
             await _repository.AddAsync(supplier, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(supplier.Id, true, CancellationToken.None);
 

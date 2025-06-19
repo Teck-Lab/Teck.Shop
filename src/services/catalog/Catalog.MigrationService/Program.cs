@@ -1,9 +1,9 @@
 using Catalog.Infrastructure.Persistence;
-using Catalog.MigrationService;
 using Catalog.Infrastructure;
-using Catalog.MigrationService;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using Microsoft.Extensions.Logging;
+using Catalog.MigrationService;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -16,7 +16,7 @@ var migrationAssembly = typeof(IAssemblyMarker).Assembly;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("catalogdb"), sqlOptions =>
     {
-        sqlOptions.MigrationsAssembly(migrationAssembly.FullName);
+        sqlOptions.MigrationsAssembly(migrationAssembly.GetName().Name);
     }));
 builder.EnrichNpgsqlDbContext<AppDbContext>(settings =>
     // Disable Aspire default retries as we're using a custom execution strategy
@@ -24,4 +24,16 @@ builder.EnrichNpgsqlDbContext<AppDbContext>(settings =>
 
 var app = builder.Build();
 
-app.Run();
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+try
+{
+    logger.LogInformation("Starting database migration...");
+    await app.RunAsync();
+    logger.LogInformation("Database migration completed successfully.");
+    Environment.Exit(0);
+}
+catch (Exception ex)
+{
+    logger.LogCritical(ex, "Database migration failed.");
+    Environment.Exit(1);
+}

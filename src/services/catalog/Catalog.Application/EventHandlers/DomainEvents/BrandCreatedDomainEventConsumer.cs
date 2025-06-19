@@ -12,8 +12,8 @@ namespace Catalog.Application.EventHandlers.DomainEvents
     /// Initializes a new instance of the <see cref="BrandCreatedDomainEventConsumer"/> class.
     /// </remarks>
     /// <param name="logger">The logger.</param>
-    /// <param name="publishEndpoint"></param>
-    public class BrandCreatedDomainEventConsumer(ILogger<BrandCreatedDomainEventConsumer> logger, IPublishEndpoint publishEndpoint) : IConsumer<BrandCreatedDomainEvent>
+    /// <param name="publisher"></param>
+    public class BrandCreatedDomainEventConsumer(ILogger<BrandCreatedDomainEventConsumer> logger, IPublishEndpoint publisher) : IConsumer<BrandCreatedDomainEvent>
     {
         /// <summary>
         /// The logger.
@@ -21,9 +21,9 @@ namespace Catalog.Application.EventHandlers.DomainEvents
         private readonly ILogger<BrandCreatedDomainEventConsumer> _logger = logger;
 
         /// <summary>
-        /// Publish endpoint.
+        /// The publisher.
         /// </summary>
-        private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
+        private readonly IPublishEndpoint _publisher = publisher;
 
         /// <summary>
         /// Consume the domain event.
@@ -35,8 +35,7 @@ namespace Catalog.Application.EventHandlers.DomainEvents
         {
             _logger.LogInformation($"Message is {{message}}", context.Message);
 
-            BrandCreatedIntegrationEvent @event = new(context.Message.BrandId);
-            await _publishEndpoint.Publish(@event, cancellationToken: context.CancellationToken);
+            await _publisher.Publish<BrandCreatedIntegrationEvent>(new BrandCreatedIntegrationEvent(context.Message.BrandId));
         }
     }
 }

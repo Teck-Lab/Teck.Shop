@@ -88,16 +88,13 @@ namespace Teck.Shop.SharedKernel.Infrastructure.OpenApi
                     options.AddDocument($"{openApiOptions.UrlPath.ToLowerInvariant()}-v{apiVersion}", $"{appOptions.Name} API v{apiVersion}");
                 }
 
-                KeycloakAuthenticationOptions? keycloakOptions = app.Configuration.GetKeycloakOptions<KeycloakAuthenticationOptions>();
-
-                if (keycloakOptions is not null)
+                options
+                    .AddPreferredSecuritySchemes("oAuth2")
+                    .AddAuthorizationCodeFlow("oAuth2", flow =>
                 {
-                    options.AddPreferredSecuritySchemes("oAuth2");
-                    options.AddImplicitFlow("oAuth2", flow =>
-                    {
-                        flow.ClientId = keycloakOptions.Resource;
-                    });
-                }
+                    flow.ClientId = "scalar-ui";
+                    flow.Pkce = Pkce.Sha256; // Enable PKCE
+                });
             });
         }
 

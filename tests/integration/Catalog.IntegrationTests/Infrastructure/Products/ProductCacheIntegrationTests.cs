@@ -20,6 +20,7 @@ using Teck.Shop.SharedKernel.Persistence;
 using Catalog.Application.Contracts.Repositories;
 using Teck.Shop.SharedKernel.Core.Database;
 using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Products
 {
@@ -52,6 +53,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             await base.InitializeAsync();
             var httpContextAccessor = new HttpContextAccessor();
             _repository = new ProductRepository(DbContext, httpContextAccessor);
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
             _unitOfWork = new UnitOfWork<AppDbContext>(DbContext);
             _cache = new ProductCache(Cache, _repository);
         }

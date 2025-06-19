@@ -15,10 +15,13 @@ using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductPriceTypeAggregate;
 using Catalog.Domain.Entities.SupplierAggregate;
 using Catalog.Domain.Entities.BrandAggregate;
+using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Promotions
 {
-    public class PromotionRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext>
+    public class PromotionRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private PromotionRepository _repository = null!;
         private ProductRepository _productRepository = null!;
@@ -45,6 +48,12 @@ namespace Catalog.IntegrationTests.Infrastructure.Promotions
             return ctx;
         }
 
+        protected override IUnitOfWork CreateUnitOfWork(AppDbContext context)
+        {
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
+            return new UnitOfWork<AppDbContext>(context);
+        }
+
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();
@@ -67,7 +76,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Promotions
             var category = categoryResult.Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
 
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var productResult = Product.Create(
                 "TestProduct",
@@ -80,7 +89,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Promotions
             );
             var product = productResult.Value;
             await _productRepository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act: create promotion
             var promoResult = Promotion.Create(
@@ -92,7 +101,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Promotions
             );
             var promo = promoResult.Value;
             await _repository.AddAsync(promo, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(promo.Id, true, CancellationToken.None);
 

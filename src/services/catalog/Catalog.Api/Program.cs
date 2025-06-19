@@ -35,11 +35,12 @@ builder.Services.AddOutputCache();
 
 WebApplication app = builder.Build();
 
-app.MapDefaultEndpoints();
 app.UseBaseInfrastructure();
 app.UseCatalogInfrastructure();
 app.UseRequestTimeouts();
 app.UseFastEndpointsInfrastructure();
 app.UseOpenApiInfrastructure(openApiOptions, appOptions);
+
+app.MapDefaultEndpoints();
 
 await app.RunAsync();

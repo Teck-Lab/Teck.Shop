@@ -1,31 +1,31 @@
 using MassTransit;
-using MassTransit.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using Teck.Shop.SharedKernel.Core.Domain;
 using Teck.Shop.SharedKernel.Core.Events;
 
 namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors
 {
     /// <summary>
-    /// The domain event interceptor.
+    /// The integration event interceptor.
     /// </summary>
     /// <remarks>
-    /// Initializes a new instance of the <see cref="DomainEventInterceptor"/> class.
+    /// Initializes a new instance of the <see cref="IntegrationEventInterceptor"/> class.
     /// </remarks>
-    public sealed class DomainEventInterceptor : SaveChangesInterceptor
+    public sealed class IntegrationEventInterceptor : SaveChangesInterceptor
     {
+
         /// <summary>
         /// The publisher.
         /// </summary>
-        private readonly IScopedMediator _publisher;
+        private readonly IPublishEndpoint _publisher;
+
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DomainEventInterceptor"/> class.
+        /// Initializes a new instance of the <see cref="IntegrationEventInterceptor"/> class.
         /// </summary>
         /// <param name="publisher">The publisher.</param>
-        public DomainEventInterceptor(IScopedMediator publisher)
+        public IntegrationEventInterceptor(IPublishEndpoint publisher)
         {
             _publisher = publisher;
         }
@@ -43,36 +43,36 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors
         {
             if (eventData.Context is not null)
             {
-                await PublishDomainEventsAsync(eventData.Context);
+                await PublishIntegrationEventsAsync(eventData.Context);
             }
 
             return result;
         }
 
         /// <summary>
-        /// Publish domain events asynchronously.
+        /// Publish integration events asynchronously.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns>A Task.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "HLQ004:The enumerator returns a reference to the item", Justification = "Add ref when .NET 9 comes out with support for it being async.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "HLQ012:Consider using CollectionsMarshal.AsSpan()", Justification = "Add ref when .NET 9 comes out with support for it being async.")]
-        private async Task PublishDomainEventsAsync(DbContext context)
+        private async Task PublishIntegrationEventsAsync(DbContext context)
         {
-            List<IDomainEvent> domainEvents = context
+            List<IIntegrationEvent> integrationEvents = context
                 .ChangeTracker
                 .Entries<BaseEntity>()
                 .Select(entry => entry.Entity)
                 .SelectMany(entity =>
                 {
-                    IReadOnlyList<IDomainEvent> domainEvents = entity.GetDomainEvents();
-                    entity.ClearDomainEvents();
-                    return domainEvents;
+                    IReadOnlyList<IIntegrationEvent> integrationEvents = entity.GetIntegrationEvents();
+                    entity.ClearIntegrationEvents();
+                    return integrationEvents;
                 }).ToList();
 
             // Iterate over the list instead of using Span
-            foreach (var domainEvent in domainEvents)
+            foreach (IIntegrationEvent integrationEvent in integrationEvents)
             {
-                await _publisher.Publish(domainEvent);
+                await _publisher.Publish(integrationEvent);
             }
         }
     }

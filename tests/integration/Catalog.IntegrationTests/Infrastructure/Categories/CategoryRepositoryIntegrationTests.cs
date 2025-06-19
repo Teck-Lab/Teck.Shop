@@ -13,10 +13,13 @@ using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Xunit;
 using Catalog.IntegrationTests.Shared;
+using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Categories
 {
-    public class CategoryRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext>
+    public class CategoryRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private CategoryRepository _repository = null!;
 
@@ -40,6 +43,13 @@ namespace Catalog.IntegrationTests.Infrastructure.Categories
             return ctx;
         }
 
+        protected override IUnitOfWork CreateUnitOfWork(AppDbContext context)
+        {
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
+            return new UnitOfWork<AppDbContext>(context);
+        }
+
+
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();
@@ -56,7 +66,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Categories
 
             // Act
             await _repository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(category.Id, true, CancellationToken.None);
 

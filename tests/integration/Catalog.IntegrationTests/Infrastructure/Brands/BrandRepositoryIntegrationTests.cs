@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Threading.Tasks;
-using Catalog.Domain.Entities.BrandAggregate;
 using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -15,11 +14,18 @@ using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductPriceTypeAggregate;
 using Catalog.Domain.Entities.PromotionAggregate;
 using Catalog.Domain.Entities.SupplierAggregate;
+using Catalog.Domain.Entities.BrandAggregate;
+using Catalog.Domain.Entities.BrandAggregate.Errors;
+using Catalog.Domain.Entities.BrandAggregate.ValueObjects;
 using Catalog.IntegrationTests.Shared;
+using Teck.Shop.SharedKernel.Core.Database;
+using Teck.Shop.SharedKernel.Persistence.Database.EFCore;
+using Microsoft.Extensions.DependencyInjection;
+using ErrorOr;
 
 namespace Catalog.IntegrationTests.Infrastructure.Brands
 {
-    public class BrandRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext>
+    public class BrandRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private BrandRepository _repository = null!;
 
@@ -43,6 +49,12 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             return ctx;
         }
 
+        protected override IUnitOfWork CreateUnitOfWork(AppDbContext context)
+        {
+            var publishEndpoint = ServiceProvider.GetRequiredService<MassTransit.IPublishEndpoint>();
+            return new UnitOfWork<AppDbContext>(context);
+        }
+
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();
@@ -59,7 +71,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
 
             // Act
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
@@ -80,7 +92,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
 
             // Act
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
@@ -88,7 +100,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             fetched.ShouldNotBeNull();
             fetched!.Name.ShouldBe(name);
             fetched.Description.ShouldBe(desc);
-            fetched.Website.ShouldBe(website);
+            fetched.Website?.ToString().ShouldBe(website);
         }
 
         [Fact]
@@ -98,19 +110,19 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create("BrandToUpdate", "desc", "https://brand.com");
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             brand.Update("UpdatedName", "UpdatedDesc", "https://updated.com");
             _repository.Update(brand);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
             // Assert
             fetched.ShouldNotBeNull();
             fetched!.Name.ShouldBe("UpdatedName");
             fetched.Description.ShouldBe("UpdatedDesc");
-            fetched.Website.ShouldBe("https://updated.com");
+            fetched.Website?.ToString().ShouldBe("https://updated.com");
         }
 
         [Theory]
@@ -123,19 +135,19 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create(initialName, initialDesc, initialWebsite);
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             brand.Update(newName, newDesc, newWebsite);
             _repository.Update(brand);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
             // Assert
             fetched.ShouldNotBeNull();
             fetched!.Name.ShouldBe(expectedName);
             fetched.Description.ShouldBe(expectedDesc);
-            fetched.Website.ShouldBe(expectedWebsite);
+            fetched.Website?.ToString().ShouldBe(expectedWebsite);
         }
 
         [Theory]
@@ -149,19 +161,19 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create("PartialUpdateBrand", "desc", "https://partial.com");
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             brand.Update(newName, newDesc, newWebsite);
             _repository.Update(brand);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
             // Assert
             fetched.ShouldNotBeNull();
             fetched!.Name.ShouldBe(newName ?? "PartialUpdateBrand");
             fetched.Description.ShouldBe(newDesc ?? "desc");
-            fetched.Website.ShouldBe(newWebsite ?? "https://partial.com");
+            fetched.Website?.ToString().ShouldBe(newWebsite ?? "https://partial.com");
         }
 
         [Fact]
@@ -171,11 +183,11 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create("BrandToDelete", "desc", "https://brand.com");
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             _repository.Delete(brand);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
 
             // Assert
@@ -203,7 +215,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create("NullWebsiteBrand", "desc", null);
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
@@ -222,7 +234,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var brandResult = Brand.Create(name, desc, website);
             var brand = brandResult.Value;
             await _repository.AddAsync(brand, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
@@ -242,7 +254,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
                 var brand = brandResult.Value;
                 await _repository.AddAsync(brand, CancellationToken.None);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var paged = await _repository.GetPagedBrandsAsync(2, 3, null, CancellationToken.None);
@@ -267,7 +279,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
                 var brand = brandResult.Value;
                 await _repository.AddAsync(brand, CancellationToken.None);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var paged = await _repository.GetPagedBrandsAsync(page, size, null, CancellationToken.None);
@@ -298,7 +310,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
                 var brand = brandResult.Value;
                 await _repository.AddAsync(brand, CancellationToken.None);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var paged = await _repository.GetPagedBrandsAsync(1, 10, keyword, CancellationToken.None);
@@ -325,11 +337,11 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
                 await _repository.AddAsync(brand, CancellationToken.None);
                 ids.Add(brand.Id);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             await _repository.DeleteBrandsAsync(ids, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Assert
             foreach (var id in ids)
@@ -347,6 +359,166 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             var fetched = await _repository.FindByIdAsync(Guid.NewGuid(), true, CancellationToken.None);
             // Assert
             fetched.ShouldBeNull();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task AddBrand_WithInvalidName_Throws(string? name)
+        {
+            // Arrange
+            var brandResult = Brand.Create(name, "desc", "https://valid.com");
+            brandResult.IsError.ShouldBeTrue();
+            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task AddBrand_WithInvalidDescription_Throws(string? desc)
+        {
+            // Arrange
+            var brandResult = Brand.Create("ValidName", desc, "https://valid.com");
+            brandResult.IsError.ShouldBeTrue();
+            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyDescription);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData("not-a-url")]
+        [InlineData("ftp://invalid.com")]
+        [InlineData("http:/missing-slash.com")]
+        [InlineData("www.noprotocol.com")]
+        public async Task AddBrand_WithInvalidWebsite_Throws(string? website)
+        {
+            // Arrange
+            var brandResult = Brand.Create("ValidName", "desc", website);
+            brandResult.IsError.ShouldBeTrue();
+            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyWebsite || e == WebsiteErrors.Invalid);
+        }
+
+        [Fact]
+        public async Task UpdateBrand_WithInvalidName_Throws()
+        {
+            // Arrange
+            var brandResult = Brand.Create("ValidName", "desc", "https://valid.com");
+            var brand = brandResult.Value;
+            await _repository.AddAsync(brand, CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            var updateResult = brand.Update("   ", null, null);
+            updateResult.IsError.ShouldBeTrue();
+            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyName);
+        }
+
+        [Fact]
+        public async Task UpdateBrand_WithInvalidDescription_Throws()
+        {
+            // Arrange
+            var brandResult = Brand.Create("ValidName", "desc", "https://valid.com");
+            var brand = brandResult.Value;
+            await _repository.AddAsync(brand, CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            var updateResult = brand.Update(null, "   ", null);
+            updateResult.IsError.ShouldBeTrue();
+            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyDescription);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData("not-a-url")]
+        [InlineData("ftp://invalid.com")]
+        [InlineData("http:/missing-slash.com")]
+        [InlineData("www.noprotocol.com")]
+        public async Task UpdateBrand_WithInvalidWebsite_Throws(string? website)
+        {
+            // Arrange
+            var brandResult = Brand.Create("ValidName", "desc", "https://valid.com");
+            var brand = brandResult.Value;
+            await _repository.AddAsync(brand, CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            var updateResult = brand.Update(null, null, website);
+            updateResult.IsError.ShouldBeTrue();
+            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyWebsite || e == WebsiteErrors.Invalid);
+        }
+
+        [Theory]
+        [InlineData(null, "desc", "https://valid.com", "Brand.EmptyName")]
+        [InlineData("", "desc", "https://valid.com", "Brand.EmptyName")]
+        [InlineData("   ", "desc", "https://valid.com", "Brand.EmptyName")]
+        [InlineData("ValidName", null, "https://valid.com", "Brand.EmptyDescription")]
+        [InlineData("ValidName", "", "https://valid.com", "Brand.EmptyDescription")]
+        [InlineData("ValidName", "   ", "https://valid.com", "Brand.EmptyDescription")]
+        [InlineData("ValidName", "desc", "", "Website.Empty")]
+        [InlineData("ValidName", "desc", "   ", "Website.Empty")]
+        [InlineData("ValidName", "desc", "invalid-url", "Website.Invalid")]
+        [InlineData("ValidName", "desc", "ftp://notallowed.com", "Website.Invalid")]
+        public async Task AddBrand_InvalidData_ReturnsError_AndNotPersisted(string? name, string? desc, string? website, string expectedErrorCode)
+        {
+            // Arrange
+            var result = Brand.Create(name!, desc, website);
+
+            // Assert error
+            result.IsError.ShouldBeTrue();
+            result.Errors.ShouldContain(e => e.Code == expectedErrorCode);
+
+            // Try to persist if not error (should not happen)
+            if (!result.IsError) {
+                var brand = result.Value;
+                await _repository.AddAsync(brand, CancellationToken.None);
+                await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+                var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
+                fetched.ShouldBeNull();
+            }
+        }
+
+        [Theory]
+        [InlineData("ValidName", "desc", "https://valid.com", null, "Brand.EmptyName")]
+        [InlineData("ValidName", "desc", "https://valid.com", "", "Brand.EmptyName")]
+        [InlineData("ValidName", "desc", "https://valid.com", "   ", "Brand.EmptyName")]
+        [InlineData("ValidName", "desc", "https://valid.com", null, "Brand.EmptyDescription", true)]
+        [InlineData("ValidName", "desc", "https://valid.com", "", "Brand.EmptyDescription", true)]
+        [InlineData("ValidName", "desc", "https://valid.com", "   ", "Brand.EmptyDescription", true)]
+        [InlineData("ValidName", "desc", "https://valid.com", "invalid-url", "Website.Invalid", false, true)]
+        [InlineData("ValidName", "desc", "https://valid.com", "ftp://notallowed.com", "Website.Invalid", false, true)]
+        public async Task UpdateBrand_InvalidData_ReturnsError_AndNotPersisted(string initialName, string initialDesc, string initialWebsite, string? updateValue, string expectedErrorCode, bool updateDesc = false, bool updateWebsite = false)
+        {
+            // Arrange
+            var brandResult = Brand.Create(initialName, initialDesc, initialWebsite);
+            var brand = brandResult.Value;
+            await _repository.AddAsync(brand, CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+
+            // Act
+            ErrorOr<Updated> updateResult;
+            if (updateDesc)
+                updateResult = brand.Update(null, updateValue, null);
+            else if (updateWebsite)
+                updateResult = brand.Update(null, null, updateValue);
+            else
+                updateResult = brand.Update(updateValue, null, null);
+
+            // Assert error
+            updateResult.IsError.ShouldBeTrue();
+            updateResult.Errors.ShouldContain(e => e.Code == expectedErrorCode);
+
+            // Ensure not persisted
+            _repository.Update(brand);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
+            var fetched = await _repository.FindByIdAsync(brand.Id, true, CancellationToken.None);
+            fetched.ShouldNotBeNull();
+            fetched.Name.ShouldBe(initialName);
+            fetched.Description.ShouldBe(initialDesc);
+            fetched.Website?.ToString().ShouldBe(initialWebsite);
         }
     }
 }

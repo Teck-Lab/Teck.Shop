@@ -54,6 +54,11 @@ namespace Teck.Shop.SharedKernel.Core.Domain
         /// </summary>
         [JsonIgnore]
         private readonly List<IDomainEvent> _domainEvents = new();
+        /// <summary>
+        /// The integration events.
+        /// </summary>
+        [JsonIgnore]
+        private readonly List<IIntegrationEvent> _integrationEvents = new();
 
         /// <summary>
         /// Gets the deleted on.
@@ -138,6 +143,35 @@ namespace Teck.Shop.SharedKernel.Core.Domain
         public IReadOnlyList<IDomainEvent> GetDomainEvents()
         {
             return [.. _domainEvents];
+        }
+        
+                /// <summary>
+        /// Add domain event.
+        /// </summary>
+        /// <param name="event">The event.</param>
+        public void AddIntegrationEvent(IIntegrationEvent @event)
+        {
+            _integrationEvents.Add(@event);
+        }
+
+        /// <summary>
+        /// Clear domain events.
+        /// </summary>
+        /// <returns>An array of IIntegrationEvents.</returns>
+        public IIntegrationEvent[] ClearIntegrationEvents()
+        {
+            IIntegrationEvent[] dequeuedEvents = [.. _integrationEvents];
+            _integrationEvents.Clear();
+            return dequeuedEvents;
+        }
+
+        /// <summary>
+        /// Get domain events.
+        /// </summary>
+        /// <returns><![CDATA[IReadOnlyList<IIntegrationEvent>]]></returns>
+        public IReadOnlyList<IIntegrationEvent> GetIntegrationEvents()
+        {
+            return [.. _integrationEvents];
         }
     }
 }
