@@ -21,13 +21,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Promotions
 {
+    [Collection("SharedTestcontainers")]
     public class PromotionRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private PromotionRepository _repository = null!;
         private ProductRepository _productRepository = null!;
         private BrandRepository _brandRepository = null!;
         private CategoryRepository _categoryRepository = null!;
-
+        public PromotionRepositoryIntegrationTests(SharedTestcontainersFixture sharedFixture)
+        : base(sharedFixture) { }
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
         {
             var ctx = new AppDbContext(options)

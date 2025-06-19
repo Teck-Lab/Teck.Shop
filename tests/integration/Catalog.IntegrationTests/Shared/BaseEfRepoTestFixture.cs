@@ -1,21 +1,18 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
 using Xunit;
 using Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors;
 using Microsoft.AspNetCore.Http;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
-using Testcontainers.RabbitMq;
 using MassTransit.Mediator;
 
 namespace Catalog.IntegrationTests.Shared
 {
     public abstract class BaseEfRepoTestFixture<TContext, TUnitOfWork> : IAsyncLifetime where TContext : DbContext
     {
-        protected readonly PostgreSqlContainer DbContainer;
-        protected readonly RabbitMqContainer RabbitMqContainer;
+        protected readonly SharedTestcontainersFixture SharedFixture;
         protected TContext DbContext = null!;
         protected TUnitOfWork UnitOfWork = default!;
         protected SoftDeleteInterceptor SoftDeleteInterceptor = null!;
@@ -24,21 +21,14 @@ namespace Catalog.IntegrationTests.Shared
         protected IntegrationEventInterceptor IntegrationEventInterceptor = null!;
         protected IServiceProvider ServiceProvider = null!;
 
-        protected BaseEfRepoTestFixture()
+        protected BaseEfRepoTestFixture(SharedTestcontainersFixture sharedFixture)
         {
-            DbContainer = new PostgreSqlBuilder()
-                .WithDatabase("testdb")
-                .WithUsername("postgres")
-                .WithPassword("postgres")
-                .Build();
-            RabbitMqContainer = RabbitMqTestContainerFactory.Create();
+            SharedFixture = sharedFixture;
         }
 
         public virtual async ValueTask InitializeAsync()
         {
-            await DbContainer.StartAsync();
-            await RabbitMqContainer.StartAsync();
-
+            // Containers are already started by the shared fixture
             var httpContextAccessor = new HttpContextAccessor();
             var services = new ServiceCollection();
             services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
@@ -46,7 +36,7 @@ namespace Catalog.IntegrationTests.Shared
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(RabbitMqContainer.GetConnectionString());
+                    cfg.Host(SharedFixture.RabbitMqContainer.GetConnectionString());
                 });
             });
             services.AddMediator();
@@ -58,7 +48,7 @@ namespace Catalog.IntegrationTests.Shared
             DomainEventInterceptor = new DomainEventInterceptor(mediator);
 
             var options = new DbContextOptionsBuilder<TContext>()
-                .UseNpgsql(DbContainer.GetConnectionString())
+                .UseNpgsql(SharedFixture.DbContainer.GetConnectionString())
                 .AddInterceptors(SoftDeleteInterceptor, AuditingInterceptor, DomainEventInterceptor)
                 .Options;
             DbContext = CreateDbContext(options);
@@ -69,8 +59,7 @@ namespace Catalog.IntegrationTests.Shared
 
         public virtual async ValueTask DisposeAsync()
         {
-            await DbContainer.DisposeAsync();
-            await RabbitMqContainer.DisposeAsync();
+            // Do NOT dispose containers here; handled by shared fixture
         }
 
         protected abstract TContext CreateDbContext(DbContextOptions<TContext> options);

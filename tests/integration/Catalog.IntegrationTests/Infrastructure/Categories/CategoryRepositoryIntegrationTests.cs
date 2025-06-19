@@ -19,9 +19,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Categories
 {
+    [Collection("SharedTestcontainers")]
     public class CategoryRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private CategoryRepository _repository = null!;
+
+        public CategoryRepositoryIntegrationTests(SharedTestcontainersFixture sharedFixture)
+    : base(sharedFixture) { }
 
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
         {

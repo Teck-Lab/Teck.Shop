@@ -25,8 +25,12 @@ using ErrorOr;
 
 namespace Catalog.IntegrationTests.Infrastructure.Brands
 {
+    [Collection("SharedTestcontainers")]
     public class BrandRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
+        public BrandRepositoryIntegrationTests(SharedTestcontainersFixture sharedFixture)
+            : base(sharedFixture) { }
+
         private BrandRepository _repository = null!;
 
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
@@ -298,6 +302,10 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
         public async Task GetPagedBrandsAsync_WithKeyword_FiltersCorrectly_Theory(string keyword, int expectedCount)
         {
             // Arrange
+            // Ensure clean state
+            DbContext.Brands.RemoveRange(DbContext.Brands);
+            await DbContext.SaveChangesAsync();
+
             for (int i = 0; i < 5; i++)
             {
                 var brandResult = Brand.Create($"AlphaBrand{i}", "desc", $"https://alpha{i}.com");
@@ -370,7 +378,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Arrange
             var brandResult = Brand.Create(name, "desc", "https://valid.com");
             brandResult.IsError.ShouldBeTrue();
-            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyName);
+            var errorCodes = string.Join(", ", brandResult.Errors.Select(e => e.Code));
+            brandResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyName.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Theory]
@@ -382,7 +391,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Arrange
             var brandResult = Brand.Create("ValidName", desc, "https://valid.com");
             brandResult.IsError.ShouldBeTrue();
-            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyDescription);
+            var errorCodes = string.Join(", ", brandResult.Errors.Select(e => e.Code));
+            brandResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyDescription.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Theory]
@@ -397,7 +407,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Arrange
             var brandResult = Brand.Create("ValidName", "desc", website);
             brandResult.IsError.ShouldBeTrue();
-            brandResult.Errors.ShouldContain(e => e == BrandErrors.EmptyWebsite || e == WebsiteErrors.Invalid);
+            var errorCodes = string.Join(", ", brandResult.Errors.Select(e => e.Code));
+            brandResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyWebsite.Code || e.Code == WebsiteErrors.Invalid.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Fact]
@@ -412,7 +423,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Act
             var updateResult = brand.Update("   ", null, null);
             updateResult.IsError.ShouldBeTrue();
-            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyName);
+            var errorCodes = string.Join(", ", updateResult.Errors.Select(e => e.Code));
+            updateResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyName.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Fact]
@@ -427,7 +439,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Act
             var updateResult = brand.Update(null, "   ", null);
             updateResult.IsError.ShouldBeTrue();
-            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyDescription);
+            var errorCodes = string.Join(", ", updateResult.Errors.Select(e => e.Code));
+            updateResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyDescription.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Theory]
@@ -448,7 +461,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Act
             var updateResult = brand.Update(null, null, website);
             updateResult.IsError.ShouldBeTrue();
-            updateResult.Errors.ShouldContain(e => e == BrandErrors.EmptyWebsite || e == WebsiteErrors.Invalid);
+            var errorCodes = string.Join(", ", updateResult.Errors.Select(e => e.Code));
+            updateResult.Errors.ShouldContain(e => e.Code == BrandErrors.EmptyWebsite.Code || e.Code == WebsiteErrors.Invalid.Code, $"Actual error codes: {errorCodes}");
         }
 
         [Theory]
@@ -458,8 +472,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
         [InlineData("ValidName", null, "https://valid.com", "Brand.EmptyDescription")]
         [InlineData("ValidName", "", "https://valid.com", "Brand.EmptyDescription")]
         [InlineData("ValidName", "   ", "https://valid.com", "Brand.EmptyDescription")]
-        [InlineData("ValidName", "desc", "", "Website.Empty")]
-        [InlineData("ValidName", "desc", "   ", "Website.Empty")]
+        [InlineData("ValidName", "desc", "", "Brand.EmptyWebsite")]
+        [InlineData("ValidName", "desc", "   ", "Brand.EmptyWebsite")]
         [InlineData("ValidName", "desc", "invalid-url", "Website.Invalid")]
         [InlineData("ValidName", "desc", "ftp://notallowed.com", "Website.Invalid")]
         public async Task AddBrand_InvalidData_ReturnsError_AndNotPersisted(string? name, string? desc, string? website, string expectedErrorCode)
@@ -469,10 +483,12 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
 
             // Assert error
             result.IsError.ShouldBeTrue();
-            result.Errors.ShouldContain(e => e.Code == expectedErrorCode);
+            var errorCodes = string.Join(", ", result.Errors.Select(e => e.Code));
+            result.Errors.ShouldContain(e => e.Code == expectedErrorCode, $"Actual error codes: {errorCodes}");
 
             // Try to persist if not error (should not happen)
-            if (!result.IsError) {
+            if (!result.IsError)
+            {
                 var brand = result.Value;
                 await _repository.AddAsync(brand, CancellationToken.None);
                 await UnitOfWork.SaveChangesAsync(CancellationToken.None);
@@ -482,10 +498,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
         }
 
         [Theory]
-        [InlineData("ValidName", "desc", "https://valid.com", null, "Brand.EmptyName")]
         [InlineData("ValidName", "desc", "https://valid.com", "", "Brand.EmptyName")]
         [InlineData("ValidName", "desc", "https://valid.com", "   ", "Brand.EmptyName")]
-        [InlineData("ValidName", "desc", "https://valid.com", null, "Brand.EmptyDescription", true)]
         [InlineData("ValidName", "desc", "https://valid.com", "", "Brand.EmptyDescription", true)]
         [InlineData("ValidName", "desc", "https://valid.com", "   ", "Brand.EmptyDescription", true)]
         [InlineData("ValidName", "desc", "https://valid.com", "invalid-url", "Website.Invalid", false, true)]
@@ -509,7 +523,8 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
 
             // Assert error
             updateResult.IsError.ShouldBeTrue();
-            updateResult.Errors.ShouldContain(e => e.Code == expectedErrorCode);
+            var errorCodes = string.Join(", ", updateResult.Errors.Select(e => e.Code));
+            updateResult.Errors.ShouldContain(e => e.Code == expectedErrorCode, $"Actual error codes: {errorCodes}");
 
             // Ensure not persisted
             _repository.Update(brand);

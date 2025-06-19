@@ -23,12 +23,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Brands
 {
+    [Collection("SharedTestcontainers")]
     public class BrandCacheIntegrationTests : BaseCacheTestFixture<AppDbContext>
     {
         private BrandCache _cache = null!;
         private IBrandRepository _repository = null!;
         private IUnitOfWork _unitOfWork = null!;
-
+        public BrandCacheIntegrationTests(SharedTestcontainersFixture sharedFixture)
+            : base(sharedFixture) { }
         public override async ValueTask InitializeAsync()
         {
             await base.InitializeAsync();

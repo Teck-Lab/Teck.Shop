@@ -22,12 +22,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Products
 {
+    [Collection("SharedTestcontainers")]
     public class ProductRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private ProductRepository _repository = null!;
         private BrandRepository _brandRepository = null!;
         private CategoryRepository _categoryRepository = null!;
-
+        public ProductRepositoryIntegrationTests(SharedTestcontainersFixture sharedFixture)
+        : base(sharedFixture) { }
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
         {
             var ctx = new AppDbContext(options)

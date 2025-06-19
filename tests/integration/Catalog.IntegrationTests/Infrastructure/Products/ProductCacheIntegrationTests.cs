@@ -24,11 +24,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.Products
 {
+    [Collection("SharedTestcontainers")]
     public class ProductCacheIntegrationTests : BaseCacheTestFixture<AppDbContext>
     {
         private ProductCache _cache = null!;
         private IProductRepository _repository = null!;
         private IUnitOfWork _unitOfWork = null!;
+
+        public ProductCacheIntegrationTests(SharedTestcontainersFixture sharedFixture)
+    : base(sharedFixture) { }
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
         {
             var ctx = new AppDbContext(options)

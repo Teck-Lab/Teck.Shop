@@ -19,9 +19,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Infrastructure.ProductPriceTypes
 {
+    [Collection("SharedTestcontainers")]
     public class ProductPriceTypeRepositoryIntegrationTests : BaseEfRepoTestFixture<AppDbContext, IUnitOfWork>
     {
         private ProductPriceTypeRepository _repository = null!;
+        public ProductPriceTypeRepositoryIntegrationTests(SharedTestcontainersFixture sharedFixture)
+    : base(sharedFixture) { }
 
         protected override AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options)
         {
