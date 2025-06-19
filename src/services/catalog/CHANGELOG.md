@@ -1,5 +1,22 @@
 # Changelog
 
+## catalog@v0.2.0 - 2025-06-19
+
+### What Changed 👀
+
+### 🚀 Features
+
+- test: expanded unit tests @CaptainPowerTurtle (#26)
+
+### 🧪 Test
+
+- test: expanded unit tests @CaptainPowerTurtle (#26)
+
+### 🧰 Maintenance
+
+- test: expanded unit tests @CaptainPowerTurtle (#26)
+  **Full Changelog**: https://github.com/Teck-Lab/Teck.Shop/compare/catalog@v0.1.0...catalog@v0.2.0
+
 ## catalog@v0.1.0 - 2025-06-08
 
 ### What Changed 👀
