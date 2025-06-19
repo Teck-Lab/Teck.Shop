@@ -304,7 +304,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Brands
             // Arrange
             // Ensure clean state
             DbContext.Brands.RemoveRange(DbContext.Brands);
-            await DbContext.SaveChangesAsync();
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             for (int i = 0; i < 5; i++)
             {

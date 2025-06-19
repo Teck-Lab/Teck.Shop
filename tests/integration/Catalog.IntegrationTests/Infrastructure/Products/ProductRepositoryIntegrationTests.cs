@@ -112,16 +112,16 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             var categoryResult = Category.Create("CategoryToUpdate", "desc");
             var category = categoryResult.Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var productResult = Product.Create("ProductToUpdate", "desc", "SKU1", "GTIN1", new List<Category> { category }, true, brand);
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             product.Update("UpdatedName");
             _repository.Update(product);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
 
             // Assert
@@ -139,15 +139,15 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             var categoryResult = Category.Create("CategoryToDelete", "desc");
             var category = categoryResult.Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var productResult = Product.Create("ProductToDelete", "desc", "SKU2", "GTIN2", new List<Category> { category }, true, brand);
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             _repository.Delete(product);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
 
             // Assert
@@ -164,14 +164,14 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             var categoryResult = Category.Create("CategoryPaged", "desc");
             var category = categoryResult.Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             for (int i = 0; i < 10; i++)
             {
                 var productResult = Product.Create($"PagedProduct{i}", "desc", $"SKU{i}", $"GTIN{i}", new List<Category> { category }, true, brand);
                 var product = productResult.Value;
                 await _repository.AddAsync(product, CancellationToken.None);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
 
             // Act
             var paged = await _repository.GetPagedProductsAsync(2, 3, null, CancellationToken.None);
@@ -201,11 +201,11 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             await _brandRepository.AddAsync(brand, CancellationToken.None);
             var category = Category.Create("CategoryNullGtin", "desc").Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var productResult = Product.Create("ProductNullGtin", "desc", "SKU-NULLGTIN", gtin, new List<Category> { category }, true, brand);
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
             fetched.ShouldNotBeNull();
             fetched!.GTIN.ShouldBe(gtin);
@@ -220,11 +220,11 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             var cat2 = Category.Create("Cat2", "desc").Value;
             await _categoryRepository.AddAsync(cat1, CancellationToken.None);
             await _categoryRepository.AddAsync(cat2, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var productResult = Product.Create("ProductMultiCat", "desc", "SKU-MULTICAT", "GTIN-MULTICAT", new List<Category> { cat1, cat2 }, true, brand);
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
             fetched.ShouldNotBeNull();
             fetched!.Categories.Count.ShouldBe(2);
@@ -241,14 +241,14 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             await _brandRepository.AddAsync(brand, CancellationToken.None);
             var category = Category.Create("CatPartialUpdate", "desc").Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var productResult = Product.Create("ProductPartialUpdate", "desc", "SKU-PARTIAL", "GTIN-PARTIAL", new List<Category> { category }, true, brand);
             var product = productResult.Value;
             await _repository.AddAsync(product, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             product.Update(newName ?? product.Name);
             _repository.Update(product);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var fetched = await _repository.FindByIdAsync(product.Id, true, CancellationToken.None);
             fetched.ShouldNotBeNull();
             fetched!.Name.ShouldBe(newName ?? "ProductPartialUpdate");
@@ -269,18 +269,22 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
         [InlineData("NonExistent", 0)]
         public async Task GetPagedProductsAsync_WithKeyword_FiltersCorrectly(string keyword, int expectedCount)
         {
+            // Ensure clean state
+            DbContext.Products.RemoveRange(DbContext.Products);
+            await UnitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
+
             var brand = Brand.Create("BrandPagedKeyword", "desc", "https://brand.com").Value;
             await _brandRepository.AddAsync(brand, CancellationToken.None);
             var category = Category.Create("CatPagedKeyword", "desc").Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             for (int i = 0; i < 5; i++)
             {
                 var productResult = Product.Create($"PagedProduct{i}", "desc", $"SKU-KW{i}", $"GTIN-KW{i}", new List<Category> { category }, true, brand);
                 var product = productResult.Value;
                 await _repository.AddAsync(product, CancellationToken.None);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var paged = await _repository.GetPagedProductsAsync(1, 10, keyword, CancellationToken.None);
             paged.ShouldNotBeNull();
             paged.Items.Count.ShouldBe(expectedCount);
@@ -295,7 +299,7 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             await _brandRepository.AddAsync(brand, CancellationToken.None);
             var category = Category.Create("CatDelMany", "desc").Value;
             await _categoryRepository.AddAsync(category, CancellationToken.None);
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             var ids = new List<Guid>();
             for (int i = 0; i < 3; i++)
             {
@@ -304,13 +308,13 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
                 await _repository.AddAsync(product, CancellationToken.None);
                 ids.Add(product.Id);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             foreach (var id in ids)
             {
                 var prod = await _repository.FindByIdAsync(id, true, CancellationToken.None);
                 _repository.Delete(prod!);
             }
-            await DbContext.SaveChangesAsync(CancellationToken.None);
+            await UnitOfWork.SaveChangesAsync(CancellationToken.None);
             foreach (var id in ids)
             {
                 var fetched = await _repository.FindByIdAsync(id, true, CancellationToken.None);

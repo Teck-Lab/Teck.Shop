@@ -70,14 +70,16 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             // Arrange
             var brandResult = Catalog.Domain.Entities.BrandAggregate.Brand.Create("Brand for Product", "desc", "https://brand.com");
             var brand = brandResult.Value;
-            DbContext.Brands.Add(brand);
             var categoryResult = Catalog.Domain.Entities.CategoryAggregate.Category.Create("Test Category", "desc");
             var category = categoryResult.Value;
-            DbContext.Categories.Add(category);
+            var brandRepository = new BrandRepository(DbContext, new HttpContextAccessor());
+            var categoryRepository = new CategoryRepository(DbContext, new HttpContextAccessor());
+            await brandRepository.AddAsync(brand, TestContext.Current.CancellationToken);
+            await categoryRepository.AddAsync(category, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            var trackedBrand = await DbContext.Brands.FirstAsync(b => b.Id == brand.Id, TestContext.Current.CancellationToken);
-            var trackedCategory = await DbContext.Categories.FirstAsync(c => c.Id == category.Id, TestContext.Current.CancellationToken);
-            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Test Product", "desc", "sku1", "gtin1", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory }, true, trackedBrand);
+            var trackedBrand = await brandRepository.FindByIdAsync(brand.Id, true, TestContext.Current.CancellationToken);
+            var trackedCategory = await categoryRepository.FindByIdAsync(category.Id, true, TestContext.Current.CancellationToken);
+            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Test Product", "desc", "sku1", "gtin1", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory! }, true, trackedBrand!);
             var product = productResult.Value;
             await _repository.AddAsync(product, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -96,14 +98,16 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             // Arrange
             var brandResult = Catalog.Domain.Entities.BrandAggregate.Brand.Create("Brand for Product", "desc", "https://brand.com");
             var brand = brandResult.Value;
-            DbContext.Brands.Add(brand);
             var categoryResult = Catalog.Domain.Entities.CategoryAggregate.Category.Create("Test Category", "desc");
             var category = categoryResult.Value;
-            DbContext.Categories.Add(category);
+            var brandRepository = new BrandRepository(DbContext, new HttpContextAccessor());
+            var categoryRepository = new CategoryRepository(DbContext, new HttpContextAccessor());
+            await brandRepository.AddAsync(brand, TestContext.Current.CancellationToken);
+            await categoryRepository.AddAsync(category, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            var trackedBrand = await DbContext.Brands.FirstAsync(b => b.Id == brand.Id, TestContext.Current.CancellationToken);
-            var trackedCategory = await DbContext.Categories.FirstAsync(c => c.Id == category.Id, TestContext.Current.CancellationToken);
-            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Cache Product", "desc", "sku1", "gtin1", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory }, true, trackedBrand);
+            var trackedBrand = await brandRepository.FindByIdAsync(brand.Id, true, TestContext.Current.CancellationToken);
+            var trackedCategory = await categoryRepository.FindByIdAsync(category.Id, true, TestContext.Current.CancellationToken);
+            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Cache Product", "desc", "sku1", "gtin1", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory! }, true, trackedBrand!);
             var product = productResult.Value;
             await _repository.AddAsync(product, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -123,14 +127,16 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             // Arrange
             var brandResult = Catalog.Domain.Entities.BrandAggregate.Brand.Create("Brand for Product", "desc", "https://brand.com");
             var brand = brandResult.Value;
-            DbContext.Brands.Add(brand);
             var categoryResult = Catalog.Domain.Entities.CategoryAggregate.Category.Create("Test Category", "desc");
             var category = categoryResult.Value;
-            DbContext.Categories.Add(category);
+            var brandRepository = new BrandRepository(DbContext, new HttpContextAccessor());
+            var categoryRepository = new CategoryRepository(DbContext, new HttpContextAccessor());
+            await brandRepository.AddAsync(brand, TestContext.Current.CancellationToken);
+            await categoryRepository.AddAsync(category, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            var trackedBrand = await DbContext.Brands.FirstAsync(b => b.Id == brand.Id, TestContext.Current.CancellationToken);
-            var trackedCategory = await DbContext.Categories.FirstAsync(c => c.Id == category.Id, TestContext.Current.CancellationToken);
-            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Remove Product", "desc", "sku2", "gtin2", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory }, true, trackedBrand);
+            var trackedBrand = await brandRepository.FindByIdAsync(brand.Id, true, TestContext.Current.CancellationToken);
+            var trackedCategory = await categoryRepository.FindByIdAsync(category.Id, true, TestContext.Current.CancellationToken);
+            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Remove Product", "desc", "sku2", "gtin2", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory! }, true, trackedBrand!);
             var product = productResult.Value;
             await _repository.AddAsync(product, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -150,14 +156,16 @@ namespace Catalog.IntegrationTests.Infrastructure.Products
             // Arrange
             var brandResult = Catalog.Domain.Entities.BrandAggregate.Brand.Create("Brand for Product", "desc", "https://brand.com");
             var brand = brandResult.Value;
-            DbContext.Brands.Add(brand);
             var categoryResult = Catalog.Domain.Entities.CategoryAggregate.Category.Create("Test Category", "desc");
             var category = categoryResult.Value;
-            DbContext.Categories.Add(category);
+            var brandRepository = new BrandRepository(DbContext, new HttpContextAccessor());
+            var categoryRepository = new CategoryRepository(DbContext, new HttpContextAccessor());
+            await brandRepository.AddAsync(brand, TestContext.Current.CancellationToken);
+            await categoryRepository.AddAsync(category, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
-            var trackedBrand = await DbContext.Brands.FirstAsync(b => b.Id == brand.Id, TestContext.Current.CancellationToken);
-            var trackedCategory = await DbContext.Categories.FirstAsync(c => c.Id == category.Id, TestContext.Current.CancellationToken);
-            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Expire Product", "desc", "sku3", "gtin3", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory }, true, trackedBrand);
+            var trackedBrand = await brandRepository.FindByIdAsync(brand.Id, true, TestContext.Current.CancellationToken);
+            var trackedCategory = await categoryRepository.FindByIdAsync(category.Id, true, TestContext.Current.CancellationToken);
+            var productResult = Catalog.Domain.Entities.ProductAggregate.Product.Create("Expire Product", "desc", "sku3", "gtin3", new List<Catalog.Domain.Entities.CategoryAggregate.Category> { trackedCategory! }, true, trackedBrand!);
             var product = productResult.Value;
             await _repository.AddAsync(product, TestContext.Current.CancellationToken);
             await _unitOfWork.SaveChangesAsync(TestContext.Current.CancellationToken);
