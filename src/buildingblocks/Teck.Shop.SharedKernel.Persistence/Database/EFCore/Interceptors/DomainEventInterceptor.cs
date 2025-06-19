@@ -1,6 +1,8 @@
+using MassTransit;
 using MassTransit.Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Teck.Shop.SharedKernel.Core.Domain;
 using Teck.Shop.SharedKernel.Core.Events;
 
@@ -12,14 +14,21 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors
     /// <remarks>
     /// Initializes a new instance of the <see cref="DomainEventInterceptor"/> class.
     /// </remarks>
-    /// <param name="publisher">The publisher.</param>
-    public sealed class DomainEventInterceptor(IMediator publisher) : SaveChangesInterceptor
+    public sealed class DomainEventInterceptor : SaveChangesInterceptor
     {
         /// <summary>
         /// The publisher.
         /// </summary>
-        private readonly IMediator _publisher = publisher;
+        private readonly IScopedMediator _publisher;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DomainEventInterceptor"/> class.
+        /// </summary>
+        /// <param name="publisher">The publisher.</param>
+        public DomainEventInterceptor(IScopedMediator publisher)
+        {
+            _publisher = publisher;
+        }
         /// <summary>
         /// Saved the changes asynchronously.
         /// </summary>
@@ -27,9 +36,9 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors
         /// <param name="result">The result.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns><![CDATA[ValueTask<int>]]></returns>
-        public override async ValueTask<int> SavedChangesAsync(
-            SaveChangesCompletedEventData eventData,
-            int result,
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
             CancellationToken cancellationToken = default)
         {
             if (eventData.Context is not null)
@@ -60,7 +69,8 @@ namespace Teck.Shop.SharedKernel.Persistence.Database.EFCore.Interceptors
                     return domainEvents;
                 }).ToList();
 
-            foreach (IDomainEvent domainEvent in domainEvents)
+            // Iterate over the list instead of using Span
+            foreach (var domainEvent in domainEvents)
             {
                 await _publisher.Publish(domainEvent);
             }

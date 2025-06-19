@@ -17,12 +17,12 @@ namespace Catalog.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0-rc.2.24474.1")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Brands.Brand", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.BrandAggregate.Brand", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +47,6 @@ namespace Catalog.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UpdatedBy")
@@ -56,15 +55,12 @@ namespace Catalog.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("UpdatedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Website")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.ToTable("Brands");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Categories.Category", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.CategoryAggregate.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -102,10 +98,13 @@ namespace Catalog.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.ProductPriceTypes.ProductPriceType", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductAggregate.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BrandId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
@@ -120,15 +119,26 @@ namespace Catalog.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("GTIN")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Priority")
-                        .HasColumnType("integer");
+                    b.Property<string>("ProductSKU")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -138,10 +148,12 @@ namespace Catalog.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductPriceTypes");
+                    b.HasIndex("BrandId");
+
+                    b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.ProductPrices.ProductPrice", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductAggregate.ProductPrice", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -189,13 +201,10 @@ namespace Catalog.Infrastructure.Migrations
                     b.ToTable("ProductPrices");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Products.Product", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductPriceTypeAggregate.ProductPriceType", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("BrandId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
@@ -210,29 +219,14 @@ namespace Catalog.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedOn")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GTIN")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ProductSKU")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -242,12 +236,10 @@ namespace Catalog.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BrandId");
-
-                    b.ToTable("Products");
+                    b.ToTable("ProductPriceTypes");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Promotions.Promotion", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.PromotionAggregate.Promotion", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -272,7 +264,6 @@ namespace Catalog.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UpdatedBy")
@@ -292,7 +283,7 @@ namespace Catalog.Infrastructure.Migrations
                     b.ToTable("Promotions");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Suppliers.Supplier", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.SupplierAggregate.Supplier", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -317,7 +308,6 @@ namespace Catalog.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UpdatedBy")
@@ -547,13 +537,45 @@ namespace Catalog.Infrastructure.Migrations
                     b.ToTable("ProductPromotion");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.ProductPrices.ProductPrice", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.BrandAggregate.Brand", b =>
                 {
-                    b.HasOne("Catalog.Domain.Entities.Products.Product", "Product")
+                    b.OwnsOne("Catalog.Domain.Entities.BrandAggregate.ValueObjects.Website", "Website", b1 =>
+                        {
+                            b1.Property<Guid>("BrandId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .HasMaxLength(2048)
+                                .HasColumnType("character varying(2048)")
+                                .HasColumnName("Website");
+
+                            b1.HasKey("BrandId");
+
+                            b1.ToTable("Brands");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BrandId");
+                        });
+
+                    b.Navigation("Website");
+                });
+
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductAggregate.Product", b =>
+                {
+                    b.HasOne("Catalog.Domain.Entities.BrandAggregate.Brand", "Brand")
+                        .WithMany("Products")
+                        .HasForeignKey("BrandId");
+
+                    b.Navigation("Brand");
+                });
+
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductAggregate.ProductPrice", b =>
+                {
+                    b.HasOne("Catalog.Domain.Entities.ProductAggregate.Product", "Product")
                         .WithMany("ProductPrices")
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("Catalog.Domain.Entities.ProductPriceTypes.ProductPriceType", "ProductPriceType")
+                    b.HasOne("Catalog.Domain.Entities.ProductPriceTypeAggregate.ProductPriceType", "ProductPriceType")
                         .WithMany("ProductPrices")
                         .HasForeignKey("ProductPriceTypeId");
 
@@ -562,24 +584,15 @@ namespace Catalog.Infrastructure.Migrations
                     b.Navigation("ProductPriceType");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Products.Product", b =>
-                {
-                    b.HasOne("Catalog.Domain.Entities.Brands.Brand", "Brand")
-                        .WithMany("Products")
-                        .HasForeignKey("BrandId");
-
-                    b.Navigation("Brand");
-                });
-
             modelBuilder.Entity("CategoryProduct", b =>
                 {
-                    b.HasOne("Catalog.Domain.Entities.Categories.Category", null)
+                    b.HasOne("Catalog.Domain.Entities.CategoryAggregate.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoriesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Catalog.Domain.Entities.Products.Product", null)
+                    b.HasOne("Catalog.Domain.Entities.ProductAggregate.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductsId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -588,13 +601,13 @@ namespace Catalog.Infrastructure.Migrations
 
             modelBuilder.Entity("CategoryPromotion", b =>
                 {
-                    b.HasOne("Catalog.Domain.Entities.Categories.Category", null)
+                    b.HasOne("Catalog.Domain.Entities.CategoryAggregate.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoriesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Catalog.Domain.Entities.Promotions.Promotion", null)
+                    b.HasOne("Catalog.Domain.Entities.PromotionAggregate.Promotion", null)
                         .WithMany()
                         .HasForeignKey("PromotionsId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -615,30 +628,30 @@ namespace Catalog.Infrastructure.Migrations
 
             modelBuilder.Entity("ProductPromotion", b =>
                 {
-                    b.HasOne("Catalog.Domain.Entities.Products.Product", null)
+                    b.HasOne("Catalog.Domain.Entities.ProductAggregate.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Catalog.Domain.Entities.Promotions.Promotion", null)
+                    b.HasOne("Catalog.Domain.Entities.PromotionAggregate.Promotion", null)
                         .WithMany()
                         .HasForeignKey("PromotionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Brands.Brand", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.BrandAggregate.Brand", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.ProductPriceTypes.ProductPriceType", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductAggregate.Product", b =>
                 {
                     b.Navigation("ProductPrices");
                 });
 
-            modelBuilder.Entity("Catalog.Domain.Entities.Products.Product", b =>
+            modelBuilder.Entity("Catalog.Domain.Entities.ProductPriceTypeAggregate.ProductPriceType", b =>
                 {
                     b.Navigation("ProductPrices");
                 });

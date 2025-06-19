@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Core\Teck.Shop.SharedKernel.Core.csproj" />
+    <ProjectReference Include="..\..\..\buildingblocks\Teck.Shop.SharedKernel.Events\Teck.Shop.SharedKernel.Events.csproj" />
   </ItemGroup>
 
   <ItemGroup>

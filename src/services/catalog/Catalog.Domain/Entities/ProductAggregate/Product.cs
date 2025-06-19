@@ -135,11 +135,6 @@ namespace Catalog.Domain.Entities.ProductAggregate
                 errors.Add(ProductErrors.EmptySKU);
             }
 
-            if (string.IsNullOrWhiteSpace(gtin))
-            {
-                errors.Add(ProductErrors.EmptyGTIN);
-            }
-
             if (categories == null || !categories.Any())
             {
                 errors.Add(ProductErrors.EmptyCategories);

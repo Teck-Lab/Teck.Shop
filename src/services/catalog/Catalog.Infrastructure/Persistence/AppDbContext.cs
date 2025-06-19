@@ -1,3 +1,4 @@
+using System.Reflection;
 using Catalog.Domain.Entities.BrandAggregate;
 using Catalog.Domain.Entities.CategoryAggregate;
 using Catalog.Domain.Entities.ProductAggregate;
@@ -16,9 +17,17 @@ namespace Catalog.Infrastructure.Persistence
     /// <remarks>
     /// Initializes a new instance of the <see cref="AppDbContext"/> class.
     /// </remarks>
-    /// <param name="options">The options.</param>
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : BaseDbContext(options)
+    public class AppDbContext : BaseDbContext
     {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppDbContext"/> class with the specified options.
+    /// </summary>
+    /// <param name="options">The options to be used by a <see cref="DbContext"/>.</param>
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
         /// <summary>
         /// On model creating.
         /// </summary>
@@ -30,6 +39,7 @@ namespace Catalog.Infrastructure.Persistence
             modelBuilder.AddInboxStateEntity();
             modelBuilder.AddOutboxMessageEntity();
             modelBuilder.AddOutboxStateEntity();
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
         /// <summary>
@@ -40,31 +50,31 @@ namespace Catalog.Infrastructure.Persistence
         /// <summary>
         /// Gets or sets the products.
         /// </summary>
-        public required DbSet<Product> Products { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         /// <summary>
         /// Gets or sets the categories.
         /// </summary>
-        public required DbSet<Category> Categories { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         /// <summary>
         /// Gets or sets the product prices.
         /// </summary>
-        public required DbSet<ProductPrice> ProductPrices { get; set; }
+        public DbSet<ProductPrice> ProductPrices { get; set; }
 
         /// <summary>
         /// Gets or sets the product price types.
         /// </summary>
-        public required DbSet<ProductPriceType> ProductPriceTypes { get; set; }
+        public DbSet<ProductPriceType> ProductPriceTypes { get; set; }
 
         /// <summary>
         /// Gets or sets the promotions.
         /// </summary>
-        public required DbSet<Promotion> Promotions { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
 
         /// <summary>
         /// Gets or sets the suppliers.
         /// </summary>
-        public required DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
     }
 }

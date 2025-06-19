@@ -10,6 +10,12 @@ using Catalog.Infrastructure.Persistence;
 
 namespace Catalog.MigrationService
 {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiDbInitializer"/> class.
+        /// </summary>
+        /// <param name="serviceProvider">The application's service provider.</param>
+        /// <param name="hostEnvironment">The hosting environment.</param>
+        /// <param name="hostApplicationLifetime">The application lifetime manager.</param>
     public class ApiDbInitializer(
         IServiceProvider serviceProvider,
         IHostEnvironment hostEnvironment,
@@ -17,26 +23,36 @@ namespace Catalog.MigrationService
     {
         private readonly ActivitySource _activitySource = new(hostEnvironment.ApplicationName);
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
-            using var activity = _activitySource.StartActivity(hostEnvironment.ApplicationName, ActivityKind.Client);
-
-            try
-            {
-                using var scope = serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                await EnsureDatabaseAsync(dbContext, cancellationToken);
-                await RunMigrationAsync(dbContext, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                activity?.RecordException(ex);
-                throw;
-            }
-
-            hostApplicationLifetime.StopApplication();
-        }
+        /// <summary>
+        /// Executes the background service to ensure the database exists and applies migrations.
+        /// </summary>
+        /// <param name="stoppingToken">A token to monitor for cancellation requests.</param>
+                protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+                {
+                    using var activity = _activitySource.StartActivity(hostEnvironment.ApplicationName, ActivityKind.Client);
+                    var logger = serviceProvider.GetRequiredService<ILogger<ApiDbInitializer>>();
+                    try
+                    {
+                        logger.LogInformation("Ensuring database exists...");
+                        using var scope = serviceProvider.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+                        await EnsureDatabaseAsync(dbContext, stoppingToken);
+                        logger.LogInformation("Database exists or was created.");
+        
+                        logger.LogInformation("Running migrations...");
+                        await RunMigrationAsync(dbContext, stoppingToken);
+                        logger.LogInformation("Migrations applied successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogCritical(ex, "Migration failed.");
+                        activity?.AddException(ex);
+                        // Do not rethrow, just stop application after logging
+                    }
+        
+                    hostApplicationLifetime.StopApplication();
+                }
 
         private static async Task EnsureDatabaseAsync(AppDbContext dbContext, CancellationToken cancellationToken)
         {

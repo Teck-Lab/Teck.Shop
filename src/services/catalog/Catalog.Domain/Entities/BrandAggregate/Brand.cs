@@ -1,8 +1,10 @@
 using Catalog.Domain.Entities.BrandAggregate.Errors;
 using Catalog.Domain.Entities.BrandAggregate.Events;
+using Catalog.Domain.Entities.BrandAggregate.ValueObjects;
 using Catalog.Domain.Entities.ProductAggregate;
 using ErrorOr;
 using Teck.Shop.SharedKernel.Core.Domain;
+using Teck.Shop.SharedKernel.Events;
 
 namespace Catalog.Domain.Entities.BrandAggregate
 {
@@ -24,7 +26,7 @@ namespace Catalog.Domain.Entities.BrandAggregate
         /// <summary>
         /// Gets the website.
         /// </summary>
-        public string? Website { get; private set; } = null!;
+        public Website? Website { get; private set; }
 
         /// <summary>
         /// Gets the products.
@@ -42,58 +44,46 @@ namespace Catalog.Domain.Entities.BrandAggregate
         {
             var errors = new List<Error>();
 
-            if (name is not null)
+            // Name
+            if (name is not null && !string.Equals(Name, name, StringComparison.Ordinal))
             {
                 if (string.IsNullOrWhiteSpace(name))
-                {
                     errors.Add(BrandErrors.EmptyName);
-                }
-                else if (!string.Equals(Name, name, StringComparison.Ordinal))
-                {
+                else
                     Name = name;
-                }
             }
 
-            if (description is not null)
+            // Description
+            if (description is not null && !string.Equals(Description, description, StringComparison.Ordinal))
             {
                 if (string.IsNullOrWhiteSpace(description))
-                {
                     errors.Add(BrandErrors.EmptyDescription);
-                }
-                else if (!string.Equals(Description, description, StringComparison.Ordinal))
-                {
+                else
                     Description = description;
-                }
             }
 
+            // Website (Value Object)
             if (website is not null)
             {
                 if (string.IsNullOrWhiteSpace(website))
                 {
                     errors.Add(BrandErrors.EmptyWebsite);
                 }
-                else if (!Uri.IsWellFormedUriString(website, UriKind.Absolute)
-                    || !(website.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || website.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+                else
                 {
-                    errors.Add(BrandErrors.InvalidWebsite);
+                    var websiteOrError = Website.Create(website);
+                    if (websiteOrError.IsError)
+                    {
+                        errors.AddRange(websiteOrError.Errors);
+                    }
+                    else if (Website is null || !Website.Equals(websiteOrError.Value))
+                    {
+                        Website = websiteOrError.Value;
+                    }
                 }
-                else if (!string.Equals(Website, website, StringComparison.Ordinal))
-                {
-                    Website = website;
-                }
-            }
-            else
-            {
-                // Explicitly set to null if website is passed as null
-                Website = null;
             }
 
-            if (errors.Any())
-            {
-                return errors;
-            }
-
-            return Result.Updated;
+            return errors.Any() ? errors : Result.Updated;
         }
 
         /// <summary>
@@ -117,16 +107,24 @@ namespace Catalog.Domain.Entities.BrandAggregate
                 errors.Add(BrandErrors.EmptyDescription);
             }
 
+            Website? websiteValue = null;
             if (website is not null)
             {
                 if (string.IsNullOrWhiteSpace(website))
                 {
                     errors.Add(BrandErrors.EmptyWebsite);
                 }
-                else if (!Uri.IsWellFormedUriString(website, UriKind.Absolute)
-                    || !(website.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || website.StartsWith("https://", StringComparison.OrdinalIgnoreCase)))
+                else
                 {
-                    errors.Add(BrandErrors.InvalidWebsite);
+                    var websiteOrError = Website.Create(website);
+                    if (websiteOrError.IsError)
+                    {
+                        errors.AddRange(websiteOrError.Errors);
+                    }
+                    else
+                    {
+                        websiteValue = websiteOrError.Value;
+                    }
                 }
             }
 
@@ -139,11 +137,13 @@ namespace Catalog.Domain.Entities.BrandAggregate
             {
                 Name = name,
                 Description = description,
-                Website = website
+                Website = websiteValue
             };
 
             var @event = new BrandCreatedDomainEvent(brand.Id, brand.Name);
             brand.AddDomainEvent(@event);
+            var @integrationEvent = new BrandCreatedIntegrationEvent(brand.Id);
+            brand.AddIntegrationEvent(integrationEvent);
 
             return brand;
         }

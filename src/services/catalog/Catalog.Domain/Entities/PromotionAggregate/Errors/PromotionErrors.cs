@@ -27,7 +27,7 @@ public static class PromotionErrors
         /// </summary>
         public static Error InvalidDateRange => Error.Validation(
             code: "Promotion.InvalidDateRange",
-            description: "Promotion start date must be before end date.");
+            description: "Promotion date range is invalid: start date must be before end date.");
 
         /// <summary>
         /// Gets the error indicating that a promotion must have at least one product.

@@ -8,9 +8,17 @@ namespace Teck.Shop.SharedKernel.Events
     public class BrandCreatedIntegrationEvent : IntegrationEvent
     {
         /// <summary>
-        /// Gets the brand id.
+        /// Gets or sets the brand id.
         /// </summary>
-        public Guid BrandId { get; }
+        public Guid BrandId { get; set; } // Changed to settable for deserialization
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BrandCreatedIntegrationEvent"/> class.
+        /// </summary>
+        public BrandCreatedIntegrationEvent()
+        {
+            // Parameterless constructor for MassTransit serialization
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BrandCreatedIntegrationEvent"/> class.

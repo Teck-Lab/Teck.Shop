@@ -19,7 +19,9 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
 	</PropertyGroup>
-
+	<PropertyGroup>
+ 		<ExcludeByFile>**/obj/**;**/bin/**;**/Extensions.cs;**/Program.cs</ExcludeByFile>
+	</PropertyGroup>
 	<PropertyGroup>
 		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 	</PropertyGroup>
@@ -27,5 +29,6 @@
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
 	</ItemGroup>
+
 
 </Project>

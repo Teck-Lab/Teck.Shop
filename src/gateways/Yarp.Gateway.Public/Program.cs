@@ -40,13 +40,13 @@ builder.Services.AddReverseProxy()
         {
             var httpContext = transformContext.HttpContext;
 
-            // 🔁 Forward Correlation ID if present
+            // Forward Correlation ID if present
             if (httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
             {
                 transformContext.ProxyRequest.Headers.TryAddWithoutValidation("X-Correlation-ID", correlationId.ToString());
             }
 
-            // 🔐 Forward access token if not anonymous
+            // Forward access token if not anonymous
             var endpoint = httpContext.GetEndpoint();
             var allowAnonymous = endpoint?.Metadata?.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null;
 

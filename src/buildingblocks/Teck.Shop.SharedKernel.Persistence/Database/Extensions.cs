@@ -25,7 +25,7 @@ namespace Teck.Shop.SharedKernel.Persistence.Database
         {
             builder.Services.AddSingleton<SoftDeleteInterceptor>();
             builder.Services.AddSingleton<AuditingInterceptor>();
-            builder.Services.AddSingleton<DomainEventInterceptor>();
+            builder.Services.AddScoped<DomainEventInterceptor>();
 
             builder.Services.AddDbContext<TContext>((sp, options) =>
             {
