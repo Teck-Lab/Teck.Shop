@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+
 <!-- https://docs.microsoft.com/en-us/visualstudio/msbuild/customize-your-build -->
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
@@ -27,7 +27,7 @@
 	</PropertyGroup>
 	<!-- https://codyanhorn.tech/blog/excluding-your-net-test-project-from-code-coverage -->
 	<ItemGroup>
-		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
+		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
 	</ItemGroup>
 
 
