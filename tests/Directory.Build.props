@@ -27,7 +27,7 @@
 	</PropertyGroup>
 	<!-- https://codyanhorn.tech/blog/excluding-your-net-test-project-from-code-coverage -->
 	<ItemGroup>
-		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"/>
+		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
 	</ItemGroup>
 
 
