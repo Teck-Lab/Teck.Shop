@@ -121,8 +121,8 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.1" />
     <PackageVersion Include="Treyt.Yarp.ReverseProxy.Swagger" Version="3.9.0" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.3.1" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Abstractions" Version="9.3.1" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.0" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Abstractions" Version="9.4.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Yarp" Version="9.3.1" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery.Dns" Version="9.3.1" />
   </ItemGroup>
