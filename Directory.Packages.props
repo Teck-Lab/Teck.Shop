@@ -177,7 +177,7 @@
     <PackageVersion Include="Soenneker.Utils.AutoBogus.NSubstitute" Version="3.0.686" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="9.0.6" />
     <PackageVersion Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageVersion Include="Mediator.Abstractions" Version="3.0.0-preview.65" />
+    <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.0-preview.65" />
     <PackageVersion Include="CorrelationId" Version="3.0.1" />
     <PackageVersion Include="Ardalis.GuardClauses" Version="5.0.0" />
