@@ -61,8 +61,8 @@
     <PackageVersion Include="AspNetCore.HealthChecks.System" Version="9.0.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
     <PackageVersion Include="DistributedLock.Redis" Version="1.0.3" />
-    <PackageVersion Include="FastEndpoints" Version="6.1.0" />
-    <PackageVersion Include="FastEndpoints.Messaging.Core" Version="6.1.0" />
+    <PackageVersion Include="FastEndpoints" Version="7.0.1" />
+    <PackageVersion Include="FastEndpoints.Messaging.Core" Version="7.0.1" />
     <PackageVersion Include="FastEndpoints.Messaging.Remote" Version="6.1.0" />
     <PackageVersion Include="FastEndpoints.Security" Version="6.1.0" />
     <PackageVersion Include="FastEndpoints.Swagger" Version="6.1.0" />
