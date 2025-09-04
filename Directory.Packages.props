@@ -144,8 +144,8 @@
     <PackageVersion Include="Aspire.Hosting.Keycloak" Version="9.0.0-preview.5.24551.3" />
     <!--<PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.2.2" />-->
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.3.1" />
-    <PackageVersion Include="Aspire.StackExchange.Redis" Version="9.3.1" />
-    <PackageVersion Include="Aspire.StackExchange.Redis.DistributedCaching" Version="9.3.1" />
+    <PackageVersion Include="Aspire.StackExchange.Redis" Version="9.4.2" />
+    <PackageVersion Include="Aspire.StackExchange.Redis.DistributedCaching" Version="9.4.2" />
     <PackageVersion Include="Keycloak.AuthServices.Aspire.Hosting" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
