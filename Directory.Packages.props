@@ -75,7 +75,7 @@
     <PackageVersion Include="IdempotentAPI.Cache.FusionCache" Version="2.2.0" />
     <PackageVersion Include="IdempotentAPI.DistributedAccessLock.MadelsonDistributedLock" Version="2.1.0" />
     <PackageVersion Include="IdempotentAPI.MinimalAPI" Version="3.2.0" />
-    <PackageVersion Include="Keycloak.AuthServices.Authentication" Version="2.6.1" />
+    <PackageVersion Include="Keycloak.AuthServices.Authentication" Version="2.7.0" />
     <PackageVersion Include="Keycloak.AuthServices.Authorization" Version="2.6.1" />
     <PackageVersion Include="Keycloak.AuthServices.Sdk" Version="2.6.1" />
     <PackageVersion Include="MassTransit.EntityFrameworkCore" Version="8.4.1" />
@@ -83,7 +83,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.6" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
     <PackageVersion Include="NSwag.Annotations" Version="14.4.0" />
     <PackageVersion Include="prometheus-net" Version="8.2.1" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
